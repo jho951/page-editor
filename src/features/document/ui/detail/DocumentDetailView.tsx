@@ -84,7 +84,7 @@ function DocumentDetailView(): React.ReactElement {
                 <div className={styles.headerRow}>
                     <div className={styles.headerCopy}>
                         <div className={styles.headerTitleGroup}>
-                            <div className={styles.pageEyebrow}>Missing Document</div>
+                            <div className={styles.pageEyebrow}>문서 없음</div>
                             <div className={styles.tab}>
                                 <h1 className={styles.tabIcon}>문서를 찾을 수 없습니다.</h1>
                             </div>
@@ -108,7 +108,7 @@ function DocumentDetailView(): React.ReactElement {
                 <div className={styles.headerRow}>
                     <div className={styles.headerCopy}>
                         <div className={styles.headerTitleGroup}>
-                            <div className={styles.pageEyebrow}>Loading Document</div>
+                            <div className={styles.pageEyebrow}>불러오는 중</div>
                             <div className={styles.tab}>
                                 <h1 className={styles.tabIcon}>문서를 불러오는 중입니다.</h1>
                             </div>
@@ -128,7 +128,7 @@ function DocumentDetailView(): React.ReactElement {
                 <div className={styles.headerRow}>
                     <div className={styles.headerCopy}>
                         <div className={styles.headerTitleGroup}>
-                            <div className={styles.pageEyebrow}>Missing Document</div>
+                            <div className={styles.pageEyebrow}>문서 없음</div>
                             <div className={styles.tab}>
                                 <h1 className={styles.tabIcon}>문서를 찾을 수 없습니다.</h1>
                             </div>
@@ -158,7 +158,7 @@ function DocumentDetailView(): React.ReactElement {
             <div className={styles.headerRow}>
                 <div className={styles.headerCopy}>
                     <div className={styles.headerTitleGroup}>
-                        <div className={styles.pageEyebrow}>Writing Space</div>
+                        <div className={styles.pageEyebrow}>편집 중</div>
                         <div className={styles.tab}>
                             <h1 className={styles.tabIcon}>{doc.title}</h1>
                         </div>
@@ -167,21 +167,21 @@ function DocumentDetailView(): React.ReactElement {
             </div>
 
             <div className={styles.headerMeta}>
-                <div className={styles.yearLabel}>Text Editor</div>
-                <div className={styles.yearLabel}>Queue First Save</div>
+                <div className={styles.yearLabel}>문서 편집기</div>
+                <div className={styles.yearLabel}>저장 준비</div>
             </div>
 
             <div className={styles.infoGrid}>
                 <div className={styles.infoCard}>
-                    <span className={styles.infoLabel}>Document ID</span>
+                    <span className={styles.infoLabel}>문서 ID</span>
                     <p className={styles.infoValue}>{doc.id}</p>
                 </div>
                 <div className={styles.infoCard}>
-                    <span className={styles.infoLabel}>Category</span>
+                    <span className={styles.infoLabel}>분류</span>
                     <p className={styles.infoValue}>{doc.kind}</p>
                 </div>
                 <div className={styles.infoCard}>
-                    <span className={styles.infoLabel}>Accent</span>
+                    <span className={styles.infoLabel}>색상</span>
                     <p className={styles.infoValue}>{doc.accent}</p>
                 </div>
             </div>

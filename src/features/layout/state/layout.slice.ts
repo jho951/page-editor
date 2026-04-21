@@ -100,6 +100,12 @@ function toFolderNode(item: ListDocumentsItem): FolderItem | null {
   };
 }
 
+type DocumentTreeNode = {
+    id: string;
+    parentId: string | null;
+    node: FolderItem;
+};
+
 type GlobalResponse<T> = {
     data?: T;
     items?: T;
@@ -108,6 +114,7 @@ type GlobalResponse<T> = {
 
 type RemoteTrashItem = {
     id?: string | number;
+    documentId?: string | number;
     title?: string;
     label?: string;
     name?: string;
@@ -125,7 +132,8 @@ function unwrapEnvelope<T>(payload: T | GlobalResponse<T>): T {
 }
 
 function toTrashItem(item: RemoteTrashItem): TrashItem | null {
-    const id = item.id == null ? "" : String(item.id);
+    const idSource = item.documentId ?? item.id;
+    const id = idSource == null ? "" : String(idSource);
     if (!id) return null;
 
     const deletedAt =
@@ -142,6 +150,44 @@ function toTrashItem(item: RemoteTrashItem): TrashItem | null {
     };
 }
 
+function toDocumentTreeNode(item: ListDocumentsItem): DocumentTreeNode | null {
+    const node = toFolderNode(item);
+    if (!node) return null;
+
+    return {
+        id: node.id,
+        parentId: item.parentId == null || item.parentId === "" ? null : String(item.parentId),
+        node: {
+            ...node,
+            children: [],
+        },
+    };
+}
+
+function buildDocumentTree(items: ListDocumentsItem[]): FolderItem[] {
+    const entries = items
+        .map((item) => toDocumentTreeNode(item))
+        .filter((item): item is DocumentTreeNode => item !== null);
+
+    const nodeById = new Map(entries.map((entry) => [entry.id, entry.node]));
+    const roots: FolderItem[] = [];
+
+    for (const entry of entries) {
+        const { parentId, node } = entry;
+        if (parentId && parentId !== entry.id) {
+            const parent = nodeById.get(parentId);
+            if (parent) {
+                parent.children = parent.children ? [...parent.children, node] : [node];
+                continue;
+            }
+        }
+
+        roots.push(node);
+    }
+
+    return roots;
+}
+
 /**
  * LNB 문서 목록을 `/v1/documents`에서 조회합니다.
  */
@@ -152,9 +198,7 @@ export const fetchLnbDocuments = createAsyncThunk<
 >("layout/fetchLnbDocuments", async (_arg, { rejectWithValue }) => {
     try {
         const items = await pagesApi.listDocuments();
-        return items
-            .map((item) => toFolderNode(item))
-            .filter((item): item is FolderItem => item !== null);
+        return buildDocumentTree(items);
     } catch (error) {
         return rejectWithValue(error instanceof Error ? error.message : "fetch documents failed");
     }

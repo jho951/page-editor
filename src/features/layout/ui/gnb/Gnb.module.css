@@ -7,6 +7,7 @@
     padding: var(--gnb-padding);
     flex-shrink: 0;
     gap: var(--gnb-gap);
+    min-height: 56px;
 }
 
 .favoriteBtn,
@@ -19,11 +20,11 @@
     min-width: var(--gnb-button-height);
     height: var(--gnb-button-height);
     padding: var(--space-0) var(--space-10);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(61, 53, 45, 0.08);
-    box-shadow: 0 10px 22px rgba(92, 78, 59, 0.05);
-    color: rgba(61, 53, 45, 0.76);
+    border-radius: var(--base-radius);
+    background: rgba(var(--color-white-rgb), 0.86);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.06);
+    color: rgba(var(--color-text-rgb), 0.78);
 }
 
 .favoriteBtn:hover,
@@ -32,27 +33,21 @@
 .menuBtn:hover,
 .shareBtn:hover,
 .deleteActionBtn:hover {
-    background: rgba(255, 255, 255, 0.92);
-}
-
-.workspaceBtn {
-    background: none;
-    border: none;
-    cursor: pointer;
+    background: rgba(var(--color-white-rgb), 0.98);
 }
 
 .avatar {
     width: var(--size-30);
     height: var(--size-30);
-    background: linear-gradient(135deg, rgba(110, 141, 116, 0.9), rgba(215, 163, 124, 0.9));
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
     color: white;
-    border-radius: 12px;
+    border-radius: var(--base-radius);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: var(--font-xs);
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
 }
 
 .gnbLeft {
@@ -77,21 +72,37 @@
 .deleteActionBtn {
     min-height: var(--gnb-button-height);
     padding: var(--space-0) var(--space-14);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(61, 53, 45, 0.08);
-    box-shadow: 0 10px 22px rgba(92, 78, 59, 0.05);
+    border-radius: var(--base-radius);
+    background: rgba(var(--color-white-rgb), 0.86);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.06);
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
 }
 
 .shareBtnActive {
-    background: rgba(110, 141, 116, 0.12);
-    border-color: rgba(110, 141, 116, 0.18);
+    background: rgba(var(--color-primary-rgb), 0.12);
+    border-color: rgba(var(--color-primary-rgb), 0.28);
 }
 
 .backIcon {
     font-size: var(--font-base);
     line-height: 1;
+}
+
+@media (max-width: 840px) {
+    .gnbWrap {
+        height: auto;
+        padding: var(--space-8) var(--space-4) var(--space-10);
+    }
+
+    .gnbRight {
+        gap: var(--space-6);
+    }
+
+    .shareBtn,
+    .deleteActionBtn {
+        padding-inline: var(--space-10);
+    }
 }

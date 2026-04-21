@@ -19,7 +19,9 @@ export type CreatePageResponse = {
 
 export type UpdatePageBody = {
   title: string;
-  parentId: string | null;
+  version: number;
+  icon?: unknown;
+  cover?: unknown;
 };
 
 export type UpdatePageVisibilityBody = {
@@ -31,6 +33,7 @@ export type ListDocumentsItem = {
   id?: string | number;
   title?: string;
   name?: string;
+  parentId?: string | number | null;
 };
 
 type GlobalResponse<T> = {
@@ -46,7 +49,9 @@ type CreateDocumentRequest = {
 
 type UpdateDocumentRequest = {
   title: string;
-  parentId: string | null;
+  version: number;
+  icon?: unknown;
+  cover?: unknown;
 };
 
 function normalizeParentId(parentId: string | null | undefined): string | null | undefined {
@@ -70,6 +75,15 @@ type MoveDocumentRequest = {
   targetParentId: string | null;
   afterDocumentId: string | null;
   beforeDocumentId: string | null;
+};
+
+type MoveDocumentResponse = {
+  resourceType?: "DOCUMENT";
+  resourceId?: string;
+  parentId?: string | null;
+  version?: number;
+  documentVersion?: number;
+  sortKey?: string;
 };
 
 /**
@@ -117,20 +131,19 @@ export const pagesApi = {
       endpoints.documentById(id),
       {
         title: body.title,
-        parentId: normalizeParentId(body.parentId) ?? null,
+        version: body.version,
+        ...(body.icon !== undefined ? { icon: body.icon } : {}),
+        ...(body.cover !== undefined ? { cover: body.cover } : {}),
       }
     );
 
     return unwrapEnvelope(response);
   },
   moveToTrash: async (documentId: string): Promise<void> => {
-    await documentsApi.patch<unknown, Record<string, never>>(
-      endpoints.documentTrash(documentId),
-      {}
-    );
+    await documentsApi.patch<unknown, undefined>(endpoints.documentTrash(documentId));
   },
   restoreFromTrash: async (documentId: string): Promise<void> => {
-    await documentsApi.post<unknown, Record<string, never>>(endpoints.documentRestore(documentId), {});
+    await documentsApi.post<unknown, undefined>(endpoints.documentRestore(documentId));
   },
   deleteFromTrash: async (documentId: string): Promise<void> => {
     await documentsApi.delete<unknown>(endpoints.documentById(documentId));
@@ -140,11 +153,28 @@ export const pagesApi = {
     body: MoveDocumentRequest
   ): Promise<CreatePageResponse> => {
     const response = await documentsApi.post<
-      GlobalResponse<CreatePageResponse> | CreatePageResponse,
-      MoveDocumentRequest
-    >(endpoints.documentMove(documentId), body);
+      GlobalResponse<MoveDocumentResponse> | MoveDocumentResponse,
+      {
+        resourceType: "DOCUMENT";
+        resourceId: string;
+        targetParentId: string | null;
+        afterId: string | null;
+        beforeId: string | null;
+      }
+    >(endpoints.editorOperationMove, {
+      resourceType: "DOCUMENT",
+      resourceId: documentId,
+      targetParentId: body.targetParentId,
+      afterId: body.afterDocumentId,
+      beforeId: body.beforeDocumentId,
+    });
 
-    return unwrapEnvelope(response);
+    const unwrapped = unwrapEnvelope(response);
+    return {
+      id: unwrapped.resourceId ?? documentId,
+      parentId: unwrapped.parentId ?? body.targetParentId,
+      version: unwrapped.documentVersion ?? unwrapped.version,
+    };
   },
   updatePageVisibility: async (
     documentId: string,

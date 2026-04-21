@@ -2,16 +2,12 @@
 const API_V1 = "/v1";
 
 export const endpoints = {
-  documentsBase: API_V1,
+  documentsBase: `${API_V1}/documents`,
   documents: `${API_V1}/documents`,
   documentsTrash: `${API_V1}/documents/trash`,
-  workspaces: `${API_V1}/workspaces`,
-  workspaceById: (id: string) => `${API_V1}/workspaces/${encodeURIComponent(id)}`,
-  workspaceDocuments: (workspaceId: string) => `${API_V1}/workspaces/${encodeURIComponent(workspaceId)}/documents`,
-  workspaceTrashDocuments: (workspaceId: string) => `${API_V1}/workspaces/${encodeURIComponent(workspaceId)}/trash/documents`,
   documentById: (id: string) => `${API_V1}/documents/${encodeURIComponent(id)}`,
-  documentTransactions: (id: string) => `${API_V1}/documents/${encodeURIComponent(id)}/transactions`,
-  documentMove: (id: string) => `${API_V1}/documents/${encodeURIComponent(id)}/move`,
+  documentTransactions: (id: string) => `${API_V1}/editor-operations/documents/${encodeURIComponent(id)}/save`,
+  editorOperationMove: `${API_V1}/editor-operations/move`,
   documentRestore: (id: string) => `${API_V1}/documents/${encodeURIComponent(id)}/restore`,
   documentTrash: (id: string) => `${API_V1}/documents/${encodeURIComponent(id)}/trash`,
   documentVisibility: (id: string) => `${API_V1}/documents/${encodeURIComponent(id)}/visibility`,

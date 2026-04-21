@@ -575,7 +575,7 @@ export const loadEditorDocument = createAsyncThunk(
 export const flushEditorTransactions = createAsyncThunk<
   { batchId: string; response: Awaited<ReturnType<typeof editorTransactionsApi.postTransactions>> },
   { force?: boolean } | undefined,
-  { state: RootState; rejectValue: EditorConflictResponse | { message: string } }
+  { state: RootState; rejectValue: EditorConflictResponse | { message: string; status?: number } }
 >("editor/flush", async (_arg, { getState, rejectWithValue, requestId }) => {
 
   const state = getState().editor;
@@ -634,13 +634,37 @@ export const flushEditorTransactions = createAsyncThunk<
 
     const e = error as { status?: number; data?: unknown; message?: string };
     if (e.status === 409 && e.data) {
+      if (
+        typeof e.data === "object" &&
+        e.data !== null &&
+        "code" in (e.data as Record<string, unknown>) &&
+        (e.data as { code?: string }).code === "CONFLICT"
+      ) {
+        console.log("[EDITOR][flush-conflict-local]", {
+          documentId,
+          batchId,
+          status: e.status,
+          data: e.data,
+        });
+        return rejectWithValue(e.data as EditorConflictResponse);
+      }
+
       console.log("[EDITOR][flush-conflict]", {
         documentId,
         batchId,
         status: e.status,
         data: e.data,
       });
-      return rejectWithValue(e.data as EditorConflictResponse);
+      return rejectWithValue({ message: "save conflict", status: 409 });
+    }
+    if (e.status === 409) {
+      console.log("[EDITOR][flush-conflict]", {
+        documentId,
+        batchId,
+        status: e.status,
+        data: e.data,
+      });
+      return rejectWithValue({ message: "save conflict", status: 409 });
     }
     console.log("[EDITOR][flush-error]", {
       documentId,
@@ -1051,6 +1075,19 @@ const editorSlice = createSlice({
 
         state.saveState = "conflict";
         state.errorMessage = "동일한 블록이 다른 변경과 충돌했습니다.";
+      } else if (action.payload && "status" in action.payload && action.payload.status === 409) {
+        state.queue = buildPendingQueue([...inFlightOps, ...state.queue.ops]);
+        inFlightOps.forEach((op) => {
+
+          const block = state.blocks.byId[op.blockId];
+          if (block?.status === "saving") {
+            block.status = "normal";
+            block.remoteContent = undefined;
+            block.remoteVersion = undefined;
+          }
+        });
+        state.saveState = "conflict";
+        state.errorMessage = "서버 최신 상태와 충돌했습니다. 최신 내용을 다시 불러온 뒤 저장을 재시도하세요.";
       } else if (action.payload && "message" in action.payload && action.payload.message !== "no-op") {
         // Transport/server failures requeue the batch so autosave or manual retry can send it again.
         state.queue = buildPendingQueue([...inFlightOps, ...state.queue.ops]);

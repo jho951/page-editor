@@ -56,6 +56,7 @@ type RemoteBlockResponse = {
   id: string;
   parentId?: string | null;
   orderKey?: string;
+  sortKey?: string;
   version: number;
   type?: "TEXT";
   content: RichTextContent;
@@ -63,10 +64,21 @@ type RemoteBlockResponse = {
 };
 
 type RemoteTransactionResult = {
+  opId?: string;
   blockId?: string;
   blockRef?: string;
   tempId?: string;
   version?: number;
+};
+
+type RemoteAppliedOperation = {
+  opId?: string;
+  status?: string;
+  tempId?: string | null;
+  blockId?: string | null;
+  version?: number | null;
+  sortKey?: string | null;
+  deletedAt?: string | null;
 };
 
 type RemoteTransactionResponse = {
@@ -75,6 +87,7 @@ type RemoteTransactionResponse = {
   tempIdMappings?: Record<string, string>;
   idMappings?: Record<string, string>;
   results?: RemoteTransactionResult[];
+  appliedOperations?: RemoteAppliedOperation[];
 };
 
 function unwrapEnvelope<T>(payload: T | GlobalResponse<T>): T {
@@ -156,19 +169,42 @@ function normalizeTransactionSuccess(
   const unwrapped = unwrapEnvelope(rawResponse as GlobalResponse<RemoteTransactionResponse> | RemoteTransactionResponse);
   const response = (unwrapped ?? {}) as RemoteTransactionResponse;
 
-  const idMappings = response.tempIdMappings ?? response.idMappings ?? {};
-  const results = (Array.isArray(response.results) ? response.results : []).map((result) => {
+  const appliedOperations = Array.isArray(response.appliedOperations) ? response.appliedOperations : [];
+  const appliedIdMappings = Object.fromEntries(
+    appliedOperations
+      .filter((op): op is RemoteAppliedOperation & { tempId: string; blockId: string } =>
+        typeof op.tempId === "string" &&
+        op.tempId.length > 0 &&
+        typeof op.blockId === "string" &&
+        op.blockId.length > 0
+      )
+      .map((op) => [op.tempId, op.blockId])
+  );
+  const idMappings = {
+    ...(response.idMappings ?? response.tempIdMappings ?? {}),
+    ...appliedIdMappings,
+  };
+
+  const rawResults: RemoteTransactionResult[] = appliedOperations.length > 0
+    ? appliedOperations.map((operation) => ({
+        opId: operation.opId,
+        blockId: operation.blockId ?? undefined,
+        tempId: operation.tempId ?? undefined,
+        version: operation.version ?? undefined,
+      }))
+    : (Array.isArray(response.results) ? response.results : []);
+
+  const results = rawResults.map((result) => {
     const resolvedBlockId = String(result.blockId ?? result.blockRef ?? "");
-    const tempId = typeof result.tempId === "string" ? result.tempId : undefined;
-    const localBlockId = tempId ??
-      Object.entries(idMappings).find(([, realId]) => realId === resolvedBlockId)?.[0] ??
+    const realBlockId =
+      (typeof result.tempId === "string" ? idMappings[result.tempId] : undefined) ??
       resolvedBlockId;
 
     return {
-      blockId: localBlockId,
+      blockId: realBlockId,
       version: typeof result.version === "number" ? result.version : 1,
     };
-  });
+  }).filter((result) => result.blockId);
 
   // Ensure each non-delete operation has a result entry for local version reconciliation.
   payload.operations.forEach((op) => {
@@ -176,14 +212,8 @@ function normalizeTransactionSuccess(
 
     if (results.some((item) => item.blockId === op.blockId)) return;
 
-    const mappedRealId = idMappings[op.blockId];
-    if (mappedRealId) {
-      const mappedResult = results.find((item) => item.blockId === mappedRealId);
-      if (mappedResult) {
-        results.push({ blockId: op.blockId, version: mappedResult.version });
-        return;
-      }
-    }
+    const resolvedBlockId = idMappings[op.blockId] ?? op.blockId;
+    if (results.some((item) => item.blockId === resolvedBlockId)) return;
 
     const nextVersion =
       op.type === "block.create"
@@ -191,7 +221,7 @@ function normalizeTransactionSuccess(
         : typeof op.version === "number" && op.version > 0
           ? op.version + 1
           : 1;
-    results.push({ blockId: op.blockId, version: nextVersion });
+    results.push({ blockId: resolvedBlockId, version: nextVersion });
   });
 
   return {
@@ -575,7 +605,7 @@ export const editorTransactionsApi = {
           .map((block, index) => ({
             id: block.id,
             parentId: block.parentId ?? `root-${document.id}`,
-            orderKey: block.orderKey ?? `ord:${String(index).padStart(6, "0")}`,
+            orderKey: block.orderKey ?? block.sortKey ?? `ord:${String(index).padStart(6, "0")}`,
             version: block.version,
             content: fromRichTextContent(block.content),
           })),
