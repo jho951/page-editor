@@ -5,6 +5,7 @@ import { endpoints } from "@shared/api/endpoints.ts";
 /** 로그인 전 경로를 세션에 저장할 때 사용하는 키입니다. */
 const POST_LOGIN_REDIRECT_KEY = "auth.post_login_redirect";
 const NEXT_QUERY_KEYS = ["next", "callbackUrl", "returnUrl", "redirect", "redirectUrl"] as const;
+const AUTH_LOGIN_PAGE = "editor";
 
 export type AuthUser = {
   id: string;
@@ -184,6 +185,7 @@ export function buildSsoStartUrl(nextPath: string): string {
 
   const callbackUrl = new URL(buildCallbackUrl());
   callbackUrl.searchParams.set("next", normalizedNext);
+  url.searchParams.set("page", AUTH_LOGIN_PAGE);
   url.searchParams.set("redirect_uri", callbackUrl.toString());
   return url.toString();
 }
