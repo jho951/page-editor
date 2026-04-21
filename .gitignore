@@ -1,4 +1,24 @@
-# Logs
+# -----------------------------
+# 📦 Dependencies
+# -----------------------------
+node_modules/
+.pnp/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# -----------------------------
+# 🔒 Environment variables
+# -----------------------------
+.env*
+!.env.example
+
+# -----------------------------
+# 🐛 Debug logs
+# -----------------------------
 logs
 *.log
 npm-debug.log*
@@ -7,19 +27,47 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# -----------------------------
+# ✅ Build outputs
+# -----------------------------
+.out/
+dist/
+build/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# -----------------------------
+# ⚙️ TypeScript
+# -----------------------------
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# -----------------------------
+# 🧪 Testing
+# -----------------------------
+coverage/
+
+# -----------------------------
+# 🧼 OS / Editor files
+# -----------------------------
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.env
+*.pem
+.vscode/
+!.vscode/extensions.json
+.idea/
+
+# -----------------------------
+# 🧪 Vercel / Deployment
+# -----------------------------
+.vercel/
+
+# -----------------------------
+# 🎨 Formatting
+# -----------------------------
+.prettierignore
+
+# -----------------------------
+# 💡 기타 권장 무시 항목
+# -----------------------------
+*.local                # 로컬 환경 설정
+*.log                  # 기타 로그 파일
+*.swp                  # vim 임시 파일
+*.tmp                  # 임시 파일

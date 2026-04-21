@@ -1,5 +1,5 @@
 services:
-  editor-prod:
+  editor:
     build:
       context: ..
       dockerfile: docker/Dockerfile

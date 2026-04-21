@@ -8,6 +8,7 @@ import type { AppDispatch } from "@app/store/store.ts";
 import { useNavigate } from "react-router-dom";
 
 import { createChildPage, fetchLnbDocuments, layoutActions, movePageToTrashRemote } from "@features/layout/state/layout.slice.ts";
+import { selectAuthInitialized, selectIsAuthenticated } from "@features/auth/index.ts";
 import type { LnbActiveKey, LnbProps } from "@features/layout/ui/lnb/Lnb.types.ts";
 import { selectFolders, selectLnbOpenFolderIds } from "@features/layout/state/layout.selector.ts";
 import { FolderNode } from "@features/layout/ui/lnb/FolderNode.tsx";
@@ -30,13 +31,16 @@ function Lnb({ activeKey = "home", onNavigate }: LnbProps) {
 
     const toggleFolder = (id: string) => dispatch(layoutActions.toggleFolderOpen(id));
 
+    const authInitialized = useSelector(selectAuthInitialized);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
     const openFolderIds = useSelector(selectLnbOpenFolderIds);
 
     const folders = useSelector(selectFolders);
 
     useEffect(() => {
+        if (!authInitialized || !isAuthenticated) return;
         void dispatch(fetchLnbDocuments());
-    }, [dispatch]);
+    }, [authInitialized, dispatch, isAuthenticated]);
 
     const go = (key: LnbActiveKey) => {
         onNavigate?.(key);
@@ -47,7 +51,7 @@ function Lnb({ activeKey = "home", onNavigate }: LnbProps) {
         dispatch(createChildPage({ parentId })).then((action) => {
             if (!createChildPage.fulfilled.match(action)) return;
 
-            const newId = action.payload.childId;
+            const newId = action.payload.documentId;
 
             const newKey = `folder:${newId}` as LnbActiveKey;
             go(newKey);

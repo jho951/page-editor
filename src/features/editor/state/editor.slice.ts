@@ -4,7 +4,7 @@
 
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@app/store/store.ts";
-import { generateId } from "@shared/lib/id.ts";
+import { generateId } from "@jho951/ui-components";
 import { editorTransactionsApi } from "@features/editor/api/transactions.ts";
 import { buildPendingQueue } from "@features/editor/lib/editorQueue.ts";
 import type {
@@ -84,6 +84,8 @@ function snapshotToState(snapshot: EditorDocumentSnapshot): Pick<
   // Deleted blocks stay in snapshot history for sync purposes, but the editor only hydrates visible blocks.
 
   const activeBlocks = snapshot.blocks.filter((block) => !block.deleted);
+  const shouldSeedInitialBlock = activeBlocks.length === 0;
+  const initialBlockId = shouldSeedInitialBlock ? `tmp:block:${generateId()}` : null;
 
   const sortedBlocks = [...activeBlocks].sort((a, b) => {
 
@@ -119,6 +121,23 @@ function snapshotToState(snapshot: EditorDocumentSnapshot): Pick<
   childrenByParentId[rootBlockId] ??= [];
 
   const documentVersion = activeBlocks.reduce((max, block) => Math.max(max, block.version), 0);
+  if (shouldSeedInitialBlock && initialBlockId) {
+    childrenByParentId[rootBlockId] = [initialBlockId];
+  }
+
+  const initialBlock: Record<string, EditorBlockState> = shouldSeedInitialBlock && initialBlockId
+    ? {
+        [initialBlockId]: {
+          id: initialBlockId,
+          parentId: rootBlockId,
+          orderKey: createOrderKey(0),
+          version: 0,
+          draft: { type: "paragraph", text: "", checked: false, marks: [] },
+          lastSynced: { type: "paragraph", text: "", checked: false, marks: [] },
+          status: "normal" as const,
+        },
+      }
+    : {};
 
   return {
     document: {
@@ -146,13 +165,25 @@ function snapshotToState(snapshot: EditorDocumentSnapshot): Pick<
           status: "normal",
         },
         ...blockMap,
+        ...initialBlock,
       },
       childrenByParentId,
     },
     selectedBlockId: childrenByParentId[rootBlockId]?.[0] ?? null,
-    queue: { ops: [], byBlockId: {} },
+    queue: shouldSeedInitialBlock && initialBlockId
+      ? buildPendingQueue([
+          {
+            type: "block.create",
+            blockId: initialBlockId,
+            parentId: rootBlockId,
+            afterBlockId: null,
+            beforeBlockId: null,
+            orderKey: createOrderKey(0),
+          },
+        ])
+      : { ops: [], byBlockId: {} },
     inFlight: null,
-    saveState: "idle",
+    saveState: shouldSeedInitialBlock ? "dirty" : "idle",
     errorMessage: null,
     loaded: true,
   };
@@ -383,7 +414,7 @@ function markBlockDirty(state: EditorState, blockId: string, content: EditorCont
   enqueue(state, {
     type: "block.replace_content",
     blockId,
-    version: block.version,
+    version: block.id.startsWith("tmp:block:") ? undefined : block.version,
     content,
   });
 }
@@ -450,6 +481,71 @@ function applyBlockIdMappings(state: EditorState, idMappings: Record<string, str
   state.queue = buildPendingQueue(state.queue.ops.map((op) => remapOperationId(op, idMappings)));
 }
 
+function transactionVersion(blockId: string, version: number): number | undefined {
+  return blockId.startsWith("tmp:block:") ? undefined : version;
+}
+
+function resolveParentBlockRef(state: EditorState, parentId: string | null | undefined): string | null {
+  if (parentId) return parentId;
+  return state.document.currentDocumentId ? state.document.byId[state.document.currentDocumentId]?.rootBlockId ?? null : null;
+}
+
+function siblingContextForBlock(state: EditorState, parentId: string | null, blockId: string) {
+  if (!parentId) {
+    return { afterBlockId: null, beforeBlockId: null };
+  }
+  return siblingContext(state, parentId, blockId);
+}
+
+export function prepareEditorTransactionOperations(
+  state: Pick<EditorState, "document" | "blocks">,
+  ops: EditorOperation[]
+): EditorOperation[] {
+  const prepared: EditorOperation[] = [];
+  const createdTempIds = new Set<string>();
+
+  const appendSyntheticCreate = (blockId: string): void => {
+    if (createdTempIds.has(blockId)) return;
+
+    const block = state.blocks.byId[blockId];
+    if (!block) return;
+
+    const parentId = resolveParentBlockRef(
+      state as EditorState,
+      block.parentId
+    );
+    const { afterBlockId, beforeBlockId } = siblingContextForBlock(state as EditorState, parentId, blockId);
+
+    prepared.push({
+      type: "block.create",
+      blockId: block.id,
+      parentId,
+      afterBlockId,
+      beforeBlockId,
+      orderKey: block.orderKey,
+    });
+    createdTempIds.add(blockId);
+  };
+
+  for (const op of ops) {
+    if (op.type === "block.create") {
+      prepared.push(op);
+      if (op.blockId.startsWith("tmp:block:")) {
+        createdTempIds.add(op.blockId);
+      }
+      continue;
+    }
+
+    if (op.blockId.startsWith("tmp:block:") && !createdTempIds.has(op.blockId)) {
+      appendSyntheticCreate(op.blockId);
+    }
+
+    prepared.push(op);
+  }
+
+  return prepared;
+}
+
 function toggleMark(marks: EditorMark[], nextType: Exclude<EditorMark["type"], "textColor">): EditorMark[] {
   const hasMark = marks.some((mark) => mark.type === nextType);
   if (hasMark) {
@@ -478,14 +574,34 @@ export const loadEditorDocument = createAsyncThunk(
  */
 export const flushEditorTransactions = createAsyncThunk<
   { batchId: string; response: Awaited<ReturnType<typeof editorTransactionsApi.postTransactions>> },
-  void,
-  { state: RootState; rejectValue: EditorConflictResponse | { message: string } }
+  { force?: boolean } | undefined,
+  { state: RootState; rejectValue: EditorConflictResponse | { message: string; status?: number } }
 >("editor/flush", async (_arg, { getState, rejectWithValue, requestId }) => {
 
   const state = getState().editor;
 
   const documentId = state.document.currentDocumentId;
-  if (!documentId || state.inFlight || state.queue.ops.length === 0) {
+  const inFlightBatch = state.inFlight?.id === requestId ? state.inFlight : null;
+  const ops = prepareEditorTransactionOperations(state, inFlightBatch?.ops ?? state.queue.ops);
+
+  if (!documentId) {
+    console.log("[EDITOR][flush-skip]", {
+      documentId,
+      inFlight: state.inFlight,
+      queueLength: ops.length,
+      force: Boolean(_arg?.force),
+    });
+    return rejectWithValue({ message: "no-op" });
+  }
+
+  const force = Boolean(_arg?.force);
+  if (!force && ops.length === 0) {
+    console.log("[EDITOR][flush-noop]", {
+      documentId,
+      inFlight: state.inFlight,
+      queueLength: ops.length,
+      force,
+    });
     return rejectWithValue({ message: "no-op" });
   }
 
@@ -494,19 +610,68 @@ export const flushEditorTransactions = createAsyncThunk<
     clientId: "web-editor",
     batchId,
     documentVersion: state.document.byId[documentId]?.version ?? 0,
-    operations: state.queue.ops,
+    operations: ops,
   };
+
+  console.log("[EDITOR][flush-request]", {
+    documentId,
+    batchId,
+    force,
+    queueLength: payload.operations.length,
+    documentVersion: payload.documentVersion,
+  });
 
   try {
 
     const response = await editorTransactionsApi.postTransactions(documentId, payload);
+    console.log("[EDITOR][flush-success]", {
+      documentId,
+      batchId,
+      response,
+    });
     return { batchId, response };
   } catch (error) {
 
     const e = error as { status?: number; data?: unknown; message?: string };
     if (e.status === 409 && e.data) {
-      return rejectWithValue(e.data as EditorConflictResponse);
+      if (
+        typeof e.data === "object" &&
+        e.data !== null &&
+        "code" in (e.data as Record<string, unknown>) &&
+        (e.data as { code?: string }).code === "CONFLICT"
+      ) {
+        console.log("[EDITOR][flush-conflict-local]", {
+          documentId,
+          batchId,
+          status: e.status,
+          data: e.data,
+        });
+        return rejectWithValue(e.data as EditorConflictResponse);
+      }
+
+      console.log("[EDITOR][flush-conflict]", {
+        documentId,
+        batchId,
+        status: e.status,
+        data: e.data,
+      });
+      return rejectWithValue({ message: "save conflict", status: 409 });
     }
+    if (e.status === 409) {
+      console.log("[EDITOR][flush-conflict]", {
+        documentId,
+        batchId,
+        status: e.status,
+        data: e.data,
+      });
+      return rejectWithValue({ message: "save conflict", status: 409 });
+    }
+    console.log("[EDITOR][flush-error]", {
+      documentId,
+      batchId,
+      status: e.status,
+      message: e.message,
+    });
     return rejectWithValue({ message: e.message ?? "save failed" });
   }
 });
@@ -663,7 +828,7 @@ const editorSlice = createSlice({
       enqueue(state, {
         type: "block.replace_content",
         blockId: nextId,
-        version: state.blocks.byId[nextId].version,
+        version: transactionVersion(nextId, state.blocks.byId[nextId].version),
         content: { ...current.draft },
       });
     },
@@ -682,7 +847,7 @@ const editorSlice = createSlice({
       enqueue(state, {
         type: "block.delete",
         blockId: current.id,
-        version: current.version,
+        version: transactionVersion(current.id, current.version),
       });
     },
     moveSelectedBlock(state, action: PayloadAction<"up" | "down">) {
@@ -713,7 +878,7 @@ const editorSlice = createSlice({
       enqueue(state, {
         type: "block.move",
         blockId: current.id,
-        version: current.version,
+        version: transactionVersion(current.id, current.version),
         parentId: current.parentId,
         afterBlockId,
         beforeBlockId,
@@ -834,7 +999,8 @@ const editorSlice = createSlice({
     });
 
     builder.addCase(flushEditorTransactions.pending, (state, action) => {
-      if (action.meta.arg !== undefined || state.queue.ops.length === 0 || state.inFlight) return;
+      const force = Boolean(action.meta.arg?.force);
+      if (state.inFlight || (!force && state.queue.ops.length === 0)) return;
       // Pending queue is moved into inFlight so new local edits can keep accumulating independently.
       state.inFlight = {
         id: action.meta.requestId,
@@ -909,6 +1075,19 @@ const editorSlice = createSlice({
 
         state.saveState = "conflict";
         state.errorMessage = "동일한 블록이 다른 변경과 충돌했습니다.";
+      } else if (action.payload && "status" in action.payload && action.payload.status === 409) {
+        state.queue = buildPendingQueue([...inFlightOps, ...state.queue.ops]);
+        inFlightOps.forEach((op) => {
+
+          const block = state.blocks.byId[op.blockId];
+          if (block?.status === "saving") {
+            block.status = "normal";
+            block.remoteContent = undefined;
+            block.remoteVersion = undefined;
+          }
+        });
+        state.saveState = "conflict";
+        state.errorMessage = "서버 최신 상태와 충돌했습니다. 최신 내용을 다시 불러온 뒤 저장을 재시도하세요.";
       } else if (action.payload && "message" in action.payload && action.payload.message !== "no-op") {
         // Transport/server failures requeue the batch so autosave or manual retry can send it again.
         state.queue = buildPendingQueue([...inFlightOps, ...state.queue.ops]);

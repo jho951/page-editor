@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Button, Switch } from "@jho951/ui-components";
-import { editorActions, flushEditorTransactions } from "@features/editor/state/editor.slice.ts";
+import { editorActions } from "@features/editor/state/editor.slice.ts";
 import type { EditorBlockState } from "@features/editor/model/editor.types.ts";
 import type { BlockEditorProps } from "@features/editor/ui/block-editor/BlockEditor.types.ts";
 import { useBlockEditorController } from "@features/editor/ui/block-editor/useBlockEditorController.ts";
@@ -40,7 +40,7 @@ function textareaClass(block: EditorBlockState): string {
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
-  const { blocks, dispatch, errorMessage, selectedBlockId, statusText } = useBlockEditorController(documentId);
+  const { blocks, dispatch, errorMessage, saveDocument, saveState, selectedBlockId, statusText } = useBlockEditorController(documentId);
 
   return (
     <section className={styles.wrap}>
@@ -60,7 +60,7 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
         <Button type="button" variant="ghost" size="s" onClick={() => dispatch(editorActions.deleteSelectedBlock())}>
           삭제
         </Button>
-        <Button type="button" variant="ghost" size="s" onClick={() => void dispatch(flushEditorTransactions())}>
+        <Button type="button" variant="ghost" size="s" onClick={() => saveDocument(true)} disabled={saveState === "saving"}>
           저장
         </Button>
         <span className={styles.status}>{statusText}</span>

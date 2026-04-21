@@ -74,10 +74,27 @@ function ShortcutProvider({ children }: ProvidersProps): React.ReactElement {
             const typing = isTypingTarget(target);
 
             const binding = findBinding(bindings, combo, scope);
+            if (combo === "Mod+S" || combo === "Ctrl+S" || combo === "Meta+S") {
+                console.log("[EDITOR][shortcut]", {
+                    combo,
+                    scope,
+                    overlayDepth,
+                    typing,
+                    hasBinding: Boolean(binding),
+                    target: target?.tagName ?? null,
+                });
+            }
             if (!binding) return;
             if (typing && !binding.allowInInput) return;
 
             withPreventDefaults(e, () => {
+                if (binding.command === "save-page") {
+                    console.log("[EDITOR][shortcut-trigger]", {
+                        combo,
+                        command: binding.command,
+                        scope: binding.scope,
+                    });
+                }
                 dispatch(
                     shortcutsActions.triggerShortcut({
                         combo,

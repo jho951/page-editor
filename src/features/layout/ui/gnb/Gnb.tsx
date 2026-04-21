@@ -18,7 +18,7 @@ import {
 import { selectPinnedDocIds, selectSharedDocIds, selectTrashItems } from "@features/layout/state/layout.selector.ts";
 import { logoutAuth } from "@features/auth/state/auth.slice.ts";
 
-import { uiActions } from "@features/ui/state/ui.slice.ts";
+import { uiActions } from "@app/state/ui.slice.ts";
 
 import { Button, Icon } from "@jho951/ui-components";
 

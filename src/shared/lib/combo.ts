@@ -1,6 +1,4 @@
-/** 키보드 이벤트 단축키 조합 문자열로 변환 */
-
-import { MOD } from "./os";
+import {MOD} from '@jho951/ui-components';
 
 /** 특수 키 조합을 표준 표기로 맞추기 위한 별칭 맵입니다. */
 const KEY_ALIASES: Record<string, string> = Object.freeze({
@@ -24,7 +22,6 @@ export function eventToCombo(e: KeyboardEvent): string {
 
     let k = e.code || e.key || "";
 
-    // numpad / special normalize
     if (k === "NumpadAdd") k = "=";
     if (k === "NumpadSubtract") k = "-";
     if (k === "Numpad0") k = "0";
@@ -48,7 +45,6 @@ export function eventToCombo(e: KeyboardEvent): string {
  * @returns 비교 가능한 표준 단축키 문자열을 반환합니다.
  */
 export function normalizeCombo(combo: string): string {
-
     const trimmed = combo.replace(/\s+/g, "");
     return KEY_ALIASES[trimmed] ?? trimmed;
 }

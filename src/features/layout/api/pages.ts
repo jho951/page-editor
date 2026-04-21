@@ -1,13 +1,10 @@
-/**
- * 페이지 생성 및 갱신 API를 게이트웨이 문서 계약에 맞춰 감쌉니다.
- */
-
 import { documentsApi } from "@shared/api/client.ts";
-import type { HttpError } from "@shared/api/client.types.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import type { HttpError } from "@shared/api/client.types.ts";
+import { generateId } from "@jho951/ui-components";
+
 
 export type CreatePageBody = {
-  id: string;
   parentId: string | null;
   title: string;
 };
@@ -22,7 +19,9 @@ export type CreatePageResponse = {
 
 export type UpdatePageBody = {
   title: string;
-  parentId: string | null;
+  version: number;
+  icon?: unknown;
+  cover?: unknown;
 };
 
 export type UpdatePageVisibilityBody = {
@@ -34,6 +33,7 @@ export type ListDocumentsItem = {
   id?: string | number;
   title?: string;
   name?: string;
+  parentId?: string | number | null;
 };
 
 type GlobalResponse<T> = {
@@ -49,15 +49,10 @@ type CreateDocumentRequest = {
 
 type UpdateDocumentRequest = {
   title: string;
-  parentId: string | null;
+  version: number;
+  icon?: unknown;
+  cover?: unknown;
 };
-
-function readWorkspaceId(): string | null {
-  if (typeof import.meta === "undefined") return null;
-
-  const env = (import.meta as unknown as { env?: { VITE_DOCUMENTS_WORKSPACE_ID?: string } }).env;
-  return env?.VITE_DOCUMENTS_WORKSPACE_ID?.trim() || null;
-}
 
 function normalizeParentId(parentId: string | null | undefined): string | null | undefined {
   if (parentId === undefined) return undefined;
@@ -82,6 +77,15 @@ type MoveDocumentRequest = {
   beforeDocumentId: string | null;
 };
 
+type MoveDocumentResponse = {
+  resourceType?: "DOCUMENT";
+  resourceId?: string;
+  parentId?: string | null;
+  version?: number;
+  documentVersion?: number;
+  sortKey?: string;
+};
+
 /**
  * 페이지 생성과 갱신을 처리하는 API 집합입니다.
  */
@@ -101,19 +105,9 @@ export const pagesApi = {
     return unwrapEnvelope(response);
   },
   createPage: async (body: CreatePageBody): Promise<CreatePageResponse> => {
-    const workspaceId = readWorkspaceId();
-
-    if (!workspaceId) {
-      return {
-        id: body.id,
-        title: body.title,
-        parentId: body.parentId,
-      };
-    }
-
     try {
       const response = await documentsApi.post<GlobalResponse<CreatePageResponse> | CreatePageResponse, CreateDocumentRequest>(
-        endpoints.workspaceDocuments(workspaceId),
+        endpoints.documents,
         {
           parentId: normalizeParentId(body.parentId) ?? null,
           title: body.title,
@@ -126,7 +120,7 @@ export const pagesApi = {
       if (typeof e.status === "number" && ![404, 405, 501].includes(e.status)) throw error;
 
       return {
-        id: body.id,
+        id: generateId(),
         title: body.title,
         parentId: body.parentId,
       };
@@ -137,20 +131,19 @@ export const pagesApi = {
       endpoints.documentById(id),
       {
         title: body.title,
-        parentId: normalizeParentId(body.parentId) ?? null,
+        version: body.version,
+        ...(body.icon !== undefined ? { icon: body.icon } : {}),
+        ...(body.cover !== undefined ? { cover: body.cover } : {}),
       }
     );
 
     return unwrapEnvelope(response);
   },
   moveToTrash: async (documentId: string): Promise<void> => {
-    await documentsApi.patch<unknown, Record<string, never>>(
-      endpoints.documentTrash(documentId),
-      {}
-    );
+    await documentsApi.patch<unknown, undefined>(endpoints.documentTrash(documentId));
   },
   restoreFromTrash: async (documentId: string): Promise<void> => {
-    await documentsApi.post<unknown, Record<string, never>>(endpoints.documentRestore(documentId), {});
+    await documentsApi.post<unknown, undefined>(endpoints.documentRestore(documentId));
   },
   deleteFromTrash: async (documentId: string): Promise<void> => {
     await documentsApi.delete<unknown>(endpoints.documentById(documentId));
@@ -160,11 +153,28 @@ export const pagesApi = {
     body: MoveDocumentRequest
   ): Promise<CreatePageResponse> => {
     const response = await documentsApi.post<
-      GlobalResponse<CreatePageResponse> | CreatePageResponse,
-      MoveDocumentRequest
-    >(endpoints.documentMove(documentId), body);
+      GlobalResponse<MoveDocumentResponse> | MoveDocumentResponse,
+      {
+        resourceType: "DOCUMENT";
+        resourceId: string;
+        targetParentId: string | null;
+        afterId: string | null;
+        beforeId: string | null;
+      }
+    >(endpoints.editorOperationMove, {
+      resourceType: "DOCUMENT",
+      resourceId: documentId,
+      targetParentId: body.targetParentId,
+      afterId: body.afterDocumentId,
+      beforeId: body.beforeDocumentId,
+    });
 
-    return unwrapEnvelope(response);
+    const unwrapped = unwrapEnvelope(response);
+    return {
+      id: unwrapped.resourceId ?? documentId,
+      parentId: unwrapped.parentId ?? body.targetParentId,
+      version: unwrapped.documentVersion ?? unwrapped.version,
+    };
   },
   updatePageVisibility: async (
     documentId: string,

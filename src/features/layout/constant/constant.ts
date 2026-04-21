@@ -1,14 +1,6 @@
-/**
- * constant 모듈입니다.
- */
+/** 최근 문서. */
 export const RECENTS = "like:recents";
-
-/**
- * PINNED 상수입니다.
- */
+/** 즐겨찾기 */
 export const PINNED = "like:pinned";
-
-/**
- * LAST 상수입니다.
- */
+/** 마지막 위치. */
 export const LAST = "like:lastLocation";

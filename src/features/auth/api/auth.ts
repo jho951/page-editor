@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from "axios";
-import { api } from "@shared/api/client.ts";
+import { api, API_BASE_URL } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
 
 /** 로그인 전 경로를 세션에 저장할 때 사용하는 키입니다. */
@@ -15,26 +15,15 @@ export type AuthUser = {
 };
 
 /**
- * SSO 시작 요청에 사용할 기본 서버 주소를 반환합니다.
- * @returns SSO 서버 기본 URL을 반환합니다.
- */
-function getSsoBaseUrl(): string {
-  if (typeof import.meta === "undefined") return "";
-
-  const env = (import.meta as unknown as { env?: { VITE_SSO_BASE_URL?: string } }).env;
-  return env?.VITE_SSO_BASE_URL ?? "http://localhost:8080";
-}
-
-/**
  * 별도 시작 프론트엔드가 있으면 그 기본 주소를 반환합니다.
  *
  * @returns 시작 프론트엔드 기본 URL을 반환합니다.
  */
 function getStartFrontendUrl(): string {
-  if (typeof import.meta === "undefined") return "http://localhost:3000";
+  if (typeof import.meta === "undefined") return "http://127.0.0.1:3000";
 
   const env = (import.meta as unknown as { env?: { VITE_START_FRONTEND_URL?: string } }).env;
-  return env?.VITE_START_FRONTEND_URL ?? "http://localhost:3000";
+  return env?.VITE_START_FRONTEND_URL ?? "http://127.0.0.1:3000";
 }
 
 /**
@@ -189,7 +178,7 @@ export function buildSsoStartUrl(nextPath: string): string {
 
   if (typeof window === "undefined") return endpoints.authSsoStart;
 
-  const base = getSsoBaseUrl() || window.location.origin;
+  const base = API_BASE_URL || window.location.origin;
 
   const url = new URL(endpoints.authSsoStart, base);
 

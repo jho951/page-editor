@@ -2,12 +2,14 @@
  * Trash View 화면을 구성하는 뷰 컴포넌트입니다.
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Button, Icon } from "@jho951/ui-components";
 
+import { useAppDispatch } from "@app/store/hooks.ts";
+import { fetchTrashDocumentsRemote } from "@features/layout/state/layout.slice.ts";
 import { selectTrashItems } from "@features/layout/state/layout.selector.ts";
 
 import styles from "./TrashView.module.css";
@@ -28,10 +30,34 @@ function formatDeletedAt(ts: number): string {
  */
 function TrashView(): React.ReactElement {
 
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { id } = useParams<{ id?: string }>();
 
     const trashItems = useSelector(selectTrashItems);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        let alive = true;
+
+        async function loadTrash(): Promise<void> {
+            setIsLoading(true);
+
+            try {
+                await dispatch(fetchTrashDocumentsRemote()).unwrap();
+            } catch {
+                // 휴지통 목록은 기존 상태를 유지하고, 빈 화면으로만 떨어지지 않게 합니다.
+            } finally {
+                if (alive) setIsLoading(false);
+            }
+        }
+
+        void loadTrash();
+
+        return () => {
+            alive = false;
+        };
+    }, [dispatch]);
 
     const selected = useMemo(() => trashItems.find((item) => item.id === id) ?? null, [trashItems, id]);
 
@@ -45,7 +71,9 @@ function TrashView(): React.ReactElement {
                     <p className={styles.listHint}>삭제된 페이지를 선택하면 상세 내용을 볼 수 있습니다.</p>
 
                     <div className={`${styles.listOnly} ${trashItems.length === 0 ? styles.listOnlyEmpty : ""}`}>
-                        {trashItems.length === 0 ? (
+                        {isLoading ? (
+                            <div className={styles.empty}>휴지통을 불러오는 중입니다.</div>
+                        ) : trashItems.length === 0 ? (
                             <div className={styles.empty}>휴지통이 비어 있습니다.</div>
                         ) : (
                             trashItems.map((item) => (

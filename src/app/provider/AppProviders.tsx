@@ -1,7 +1,3 @@
-/**
- * Redux, 인증, 테마, 단축키 provider를 한곳에서 조합합니다.
- */
-
 import React from "react";
 import { Provider as ReduxProvider } from "react-redux";
 

@@ -18,8 +18,9 @@ npm run dev
 ```
 
 - 주소: `http://localhost:5173`
-- 컨테이너 내부 Vite 프록시 `/api` 대상: `http://host.docker.internal:8080`
-- `editor-dev` 전용 compose 파일(`docker/docker-compose.dev.yml`)로 독립 실행
+- 컨테이너 내부 Vite 프록시 `/v1`, `/auth` 대상: `http://host.docker.internal:8080`
+- `editor` 서비스에 dev compose 오버레이(`docker/docker-compose.dev.yml`)를 적용해 실행
+- `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh dev logs`로 확인
 
 배포 모드(정적 빌드 + Nginx):
 
@@ -28,7 +29,8 @@ npm run dev
 ```
 
 - 주소: `http://localhost:8081`
-- `editor-prod` 전용 compose 파일(`docker/docker-compose.prod.yml`)로 독립 실행
+- `editor` 서비스에 prod compose 오버레이(`docker/docker-compose.prod.yml`)를 적용해 실행
+- `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh prod logs`로 확인
 
 로컬 실행:
 
@@ -71,23 +73,28 @@ npm run dev
   - 현재는 `vite.config.ts`를 대상으로 합니다.
   - Node 타입을 사용합니다.
 
-## 문서
-
-- [REQUIREMENT.md](./docs/REQUIREMENT.md): text-only block editor 저장 정책 요약
-- [SAVE_MODEL.md](./docs/SAVE_MODEL.md): queue + transactions + 409 conflict 설계
-
 ## 개발 환경
 
 [`.env`](.env.example)
 
-실제 API로 연결 시 `VITE_ENABLE_REMOTE_DOCS=true`로 수정합니다.
+현재 로컬 MSA 기준 기본 gateway는 `http://localhost:8080` 이며, 프론트는 gateway의 `/v1/**` 공개 API를 호출합니다.
 
 ## API 연동 기준
 
-- 기본 API base URL은 `/api` 입니다.
-- 개발 서버에서 백엔드가 있으면 Vite proxy가 `http://localhost:8080` 으로 전달합니다.
+- 기본 API base URL은 `VITE_GATEWAY_BASE_URL` 입니다.
+- 로컬 기본값은 `http://localhost:8080` 입니다.
+- 개발 서버에서 상대 경로로 호출할 경우 Vite proxy가 `/v1/**`, legacy `/auth/**`를 `VITE_API_PROXY_TARGET`으로 전달합니다.
 - 문서 목록 계약:
-  - `GET /api/pages?deleted=false`
+  - `GET /v1/documents`
+- 문서/블록 계약:
+  - `GET /v1/documents/{documentId}`
+  - `GET /v1/documents/{documentId}/blocks`
+  - `PATCH /v1/documents/{documentId}`
+  - `PATCH /v1/documents/{documentId}/trash`
+  - `POST /v1/documents/{documentId}/restore`
+  - `PATCH /v1/documents/{documentId}/visibility`
+  - `POST /v1/editor-operations/documents/{documentId}/save`
+  - `POST /v1/editor-operations/move`
 - 응답 포맷은 배열 자체 또는 아래 래퍼 구조를 허용합니다.
   - `{ data }`
   - `{ items }`
@@ -99,9 +106,9 @@ npm run dev
 
 ```text
 3000/signin
--> 8080/auth/sso/start
+-> 8080/v1/auth/sso/start
 -> GitHub
--> 8080/auth/github/callback
+-> 8080/v1/login/oauth2/code/github
 -> 5173/auth/callback
 ```
 
@@ -109,6 +116,6 @@ npm run dev
 
 - GitHub 인증 정보를 직접 처리하지 않습니다.
 - `/auth/callback` 에서 세션 쿠키가 이미 설정되어 있다고 가정합니다.
-- `GET /auth/me` 와 `POST /auth/refresh` 로 로그인 상태를 확정합니다.
-- SSO 시작은 `http://localhost:8080/auth/sso/start` 같은 auth 서버 루트 경로를 사용합니다.
+- `GET /v1/auth/me` 와 `POST /v1/auth/refresh` 로 로그인 상태를 확정합니다.
+- SSO 시작은 `http://localhost:8080/v1/auth/sso/start` 같은 gateway 공개 경로를 사용합니다.
 - 연동 계약 문서: [docs/AUTH_REDIRECT_CONTRACT.md](./docs/AUTH_REDIRECT_CONTRACT.md)

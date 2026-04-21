@@ -6,7 +6,6 @@ export { DocumentCard } from "./card/DocumentCard.tsx";
 export type { DocumentCardProps } from "./card/DocumentCard.types.ts";
 export { DocumentCatalogView } from "./catalog/DocumentCatalogView.tsx";
 export { DocumentDetailView } from "./detail/DocumentDetailView.tsx";
-export { mockDocs } from "./documents.mock.ts";
 export { DocumentGrid } from "./grid/DocumentGrid.tsx";
 export type { DocumentGridProps } from "./grid/DocumentGrid.types.ts";
 export { DocumentTab } from "./tab/DocumentTab.tsx";

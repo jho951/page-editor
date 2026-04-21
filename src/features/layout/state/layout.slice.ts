@@ -5,9 +5,11 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import type { LnbActiveKey, FolderItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 import { initialState, type OpenFolderMap } from "@features/layout/state/layout.initial.ts";
-import { generateId } from "@shared/lib/id.ts";
+import { documentsApi } from "@shared/api/client.ts";
+import { endpoints } from "@shared/api/endpoints.ts";
 import { pagesApi, type ListDocumentsItem } from "@features/layout/api/pages.ts";
 import { upsertCatalogItem } from "@features/document/index.ts";
+import type { TrashItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 
 /**
  * 지정한 부모 폴더 아래에 새 페이지를 추가합니다.
@@ -95,7 +97,95 @@ function toFolderNode(item: ListDocumentsItem): FolderItem | null {
         docId: id,
         key: `folder:${id}` as LnbActiveKey,
         label,
+  };
+}
+
+type DocumentTreeNode = {
+    id: string;
+    parentId: string | null;
+    node: FolderItem;
+};
+
+type GlobalResponse<T> = {
+    data?: T;
+    items?: T;
+    rows?: T;
+};
+
+type RemoteTrashItem = {
+    id?: string | number;
+    documentId?: string | number;
+    title?: string;
+    label?: string;
+    name?: string;
+    deletedAt?: string | number;
+};
+
+function unwrapEnvelope<T>(payload: T | GlobalResponse<T>): T {
+    if (payload && typeof payload === "object") {
+        const envelope = payload as GlobalResponse<T>;
+        if (envelope.data !== undefined) return envelope.data;
+        if (envelope.items !== undefined) return envelope.items;
+        if (envelope.rows !== undefined) return envelope.rows;
+    }
+    return payload as T;
+}
+
+function toTrashItem(item: RemoteTrashItem): TrashItem | null {
+    const idSource = item.documentId ?? item.id;
+    const id = idSource == null ? "" : String(idSource);
+    if (!id) return null;
+
+    const deletedAt =
+        typeof item.deletedAt === "number"
+            ? item.deletedAt
+            : item.deletedAt
+              ? Date.parse(String(item.deletedAt))
+              : Date.now();
+
+    return {
+        id,
+        label: String(item.title ?? item.label ?? item.name ?? "제목 없음"),
+        deletedAt: Number.isFinite(deletedAt) ? deletedAt : Date.now(),
     };
+}
+
+function toDocumentTreeNode(item: ListDocumentsItem): DocumentTreeNode | null {
+    const node = toFolderNode(item);
+    if (!node) return null;
+
+    return {
+        id: node.id,
+        parentId: item.parentId == null || item.parentId === "" ? null : String(item.parentId),
+        node: {
+            ...node,
+            children: [],
+        },
+    };
+}
+
+function buildDocumentTree(items: ListDocumentsItem[]): FolderItem[] {
+    const entries = items
+        .map((item) => toDocumentTreeNode(item))
+        .filter((item): item is DocumentTreeNode => item !== null);
+
+    const nodeById = new Map(entries.map((entry) => [entry.id, entry.node]));
+    const roots: FolderItem[] = [];
+
+    for (const entry of entries) {
+        const { parentId, node } = entry;
+        if (parentId && parentId !== entry.id) {
+            const parent = nodeById.get(parentId);
+            if (parent) {
+                parent.children = parent.children ? [...parent.children, node] : [node];
+                continue;
+            }
+        }
+
+        roots.push(node);
+    }
+
+    return roots;
 }
 
 /**
@@ -108,11 +198,31 @@ export const fetchLnbDocuments = createAsyncThunk<
 >("layout/fetchLnbDocuments", async (_arg, { rejectWithValue }) => {
     try {
         const items = await pagesApi.listDocuments();
-        return items
-            .map((item) => toFolderNode(item))
-            .filter((item): item is FolderItem => item !== null);
+        return buildDocumentTree(items);
     } catch (error) {
         return rejectWithValue(error instanceof Error ? error.message : "fetch documents failed");
+    }
+});
+
+/**
+ * 휴지통 문서 목록을 `/v1/documents/trash`에서 조회합니다.
+ */
+export const fetchTrashDocumentsRemote = createAsyncThunk<
+    TrashItem[],
+    void,
+    { rejectValue: string }
+>("layout/fetchTrashDocumentsRemote", async (_arg, { rejectWithValue }) => {
+    try {
+        const response = await documentsApi.get<GlobalResponse<RemoteTrashItem[]> | RemoteTrashItem[]>(
+            endpoints.documentsTrash
+        );
+
+        const unwrapped = unwrapEnvelope(response);
+        return (Array.isArray(unwrapped) ? unwrapped : [])
+            .map((item) => toTrashItem(item))
+            .filter((item): item is TrashItem => item !== null);
+    } catch (error) {
+        return rejectWithValue(error instanceof Error ? error.message : "fetch trash failed");
     }
 });
 
@@ -148,27 +258,22 @@ const layoutSlice = createSlice({
             state.openFolderIds = action.payload;
         },
 
-        addChildPage: {
-            prepare: ({ parentId }: { parentId: string }) => {
+        addChildPage(
+            state,
+            action: PayloadAction<{ parentId: string; childId: string; title?: string }>
+        ) {
+            const { parentId, childId, title } = action.payload;
 
-                const childId = generateId();
-                return { payload: { parentId, childId } };
-            },
-            reducer: (state, action: PayloadAction<{ parentId: string; childId: string }>) => {
-                const { parentId, childId } = action.payload;
+            const child: FolderItem = {
+                id: childId,
+                label: title ?? "새 페이지",
+                key: `folder:${childId}`,
+                docId: childId,
+            };
 
-                const child: FolderItem = {
-                    id: childId,
-                    label: "새 페이지",
-                    key: `folder:${childId}`, // ✅ 라우팅 키
-                    docId: childId,           // ✅ 문서 id로도 사용
-                };
+            addChildById(state.folders, parentId, child);
 
-                addChildById(state.folders, parentId, child);
-
-                // ✅ 추가하면 부모는 펼쳐짐
-                state.openFolderIds[parentId] = true;
-            },
+            state.openFolderIds[parentId] = true;
         },
 
         movePageToTrash(state, action: PayloadAction<{ pageId: string }>) {
@@ -288,6 +393,10 @@ const layoutSlice = createSlice({
                 ...state.folders,
             ];
         });
+
+        builder.addCase(fetchTrashDocumentsRemote.fulfilled, (state, action) => {
+            state.trashItems = action.payload;
+        });
     },
 });
 
@@ -300,51 +409,44 @@ export const layoutActions = layoutSlice.actions;
  * 하위 페이지를 생성하고 상태에 반영하는 thunk입니다.
  */
 export const createChildPage = createAsyncThunk<
-  { childId: string; key: LnbActiveKey },
+  { documentId: string; key: LnbActiveKey },
   { parentId: string },
   { rejectValue: string }
 >("layout/createChildPage", async ({ parentId }, { dispatch, rejectWithValue }) => {
-  // 1) Optimistic update: 즉시 트리에 추가
-
-  const action = layoutActions.addChildPage({ parentId });
-  dispatch(action);
-
-  const childId = action.payload.childId;
-
-  const key = (`folder:${childId}`) as LnbActiveKey;
-
-  upsertCatalogItem({
-    id: childId,
-    title: "새 페이지",
-    accent: "#D7D7D7",
-    kind: "documents",
-  });
-
-  // 2) 즉시 active로 전환
-  dispatch(layoutActions.setActiveKey(key));
-
-  // 3) 서버에 생성 요청 (실패 시 UI는 유지하고 에러만 반환)
   try {
-
     const response = await pagesApi.createPage({
-      id: childId,
       parentId,
       title: "새 페이지",
     });
 
+    const documentId = response.id;
+    if (!documentId) {
+      return rejectWithValue("create page failed");
+    }
+
+    dispatch(
+      layoutActions.addChildPage({
+        parentId,
+        childId: documentId,
+        title: response.title ?? "새 페이지",
+      })
+    );
+
+    dispatch(layoutActions.setActiveKey((`folder:${documentId}`) as LnbActiveKey));
+
     upsertCatalogItem({
-      id: response.id,
+      id: documentId,
       title: response.title ?? "새 페이지",
       accent: "#D7D7D7",
       kind: "documents",
     });
+
+    return { documentId, key: (`folder:${documentId}`) as LnbActiveKey };
   } catch (e) {
 
     const msg = e instanceof Error ? e.message : "create page failed";
     return rejectWithValue(msg);
   }
-
-  return { childId, key };
 });
 
 /**

@@ -5,7 +5,6 @@
 export { fetchCatalog } from "@features/document/api/catalog.ts";
 export { documentsDomainApi } from "@features/document/api/documents.ts";
 export { findDocById, getAllDocs, getCatalogByKind, replaceCatalog, upsertCatalogItem } from "@features/document/lib/catalog.ts";
-export { mockDocs } from "@features/document/model/document.mock.ts";
 export type { DocCardItem, DocKind } from "@features/document/model/document.types.ts";
 export { DocumentCard } from "@features/document/ui/card/DocumentCard.tsx";
 export { DocumentCatalogView } from "@features/document/ui/catalog/DocumentCatalogView.tsx";

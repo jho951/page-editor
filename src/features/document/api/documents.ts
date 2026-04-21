@@ -15,28 +15,36 @@ function unwrap<T>(payload: T | Envelope<T>): T {
 }
 
 export const documentsDomainApi = {
-  createWorkspace: async (body: { name: string }): Promise<unknown> =>
-    documentsApi.post<unknown, { name: string }>(endpoints.workspaces, body),
-  getWorkspace: async (workspaceId: string): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.workspaceById(workspaceId)),
-  getDocuments: async (workspaceId: string): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.workspaceDocuments(workspaceId)),
-  getTrashDocuments: async (workspaceId: string): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.workspaceTrashDocuments(workspaceId)),
+  getDocuments: async (): Promise<unknown> =>
+    documentsApi.get<unknown>(endpoints.documents),
+  getTrashDocuments: async (): Promise<unknown> =>
+    documentsApi.get<unknown>(endpoints.documentsTrash),
   createDocument: async (
-    workspaceId: string,
     body: Record<string, unknown>
   ): Promise<unknown> =>
-    documentsApi.post<unknown, Record<string, unknown>>(endpoints.workspaceDocuments(workspaceId), body),
+    documentsApi.post<unknown, Record<string, unknown>>(endpoints.documents, body),
   getDocument: async (documentId: string): Promise<unknown> =>
     documentsApi.get<unknown>(endpoints.documentById(documentId)),
   getDocumentBlocks: async (documentId: string): Promise<unknown> =>
     documentsApi.get<unknown>(endpoints.documentBlocks(documentId)),
   updateDocument: async (
     documentId: string,
-    body: Record<string, unknown>
+    body: {
+      title: string;
+      version: number;
+      icon?: unknown;
+      cover?: unknown;
+    }
   ): Promise<unknown> =>
-    documentsApi.patch<unknown, Record<string, unknown>>(endpoints.documentById(documentId), body),
+    documentsApi.patch<
+      unknown,
+      {
+        title: string;
+        version: number;
+        icon?: unknown;
+        cover?: unknown;
+      }
+    >(endpoints.documentById(documentId), body),
   updateDocumentVisibility: async (
     documentId: string,
     body: { visibility: "PUBLIC" | "PRIVATE"; version: number }
@@ -53,10 +61,10 @@ export const documentsDomainApi = {
   deleteDocument: async (documentId: string): Promise<void> => {
     await documentsApi.delete<unknown>(endpoints.documentById(documentId));
   },
-  trashDocument: async (documentId: string, body: Record<string, never> = {}): Promise<unknown> =>
-    documentsApi.patch<unknown, Record<string, never>>(endpoints.documentTrash(documentId), body),
+  trashDocument: async (documentId: string): Promise<unknown> =>
+    documentsApi.patch<unknown, undefined>(endpoints.documentTrash(documentId)),
   restoreDocument: async (documentId: string): Promise<void> => {
-    await documentsApi.post<unknown, Record<string, never>>(endpoints.documentRestore(documentId), {});
+    await documentsApi.post<unknown, undefined>(endpoints.documentRestore(documentId));
   },
   moveDocument: async (
     documentId: string,
@@ -66,7 +74,19 @@ export const documentsDomainApi = {
       beforeDocumentId: string | null;
     }
   ): Promise<unknown> =>
-    documentsApi.post<unknown, typeof body>(endpoints.documentMove(documentId), body),
+    documentsApi.post<unknown, {
+      resourceType: "DOCUMENT";
+      resourceId: string;
+      targetParentId: string | null;
+      afterId: string | null;
+      beforeId: string | null;
+    }>(endpoints.editorOperationMove, {
+      resourceType: "DOCUMENT",
+      resourceId: documentId,
+      targetParentId: body.targetParentId,
+      afterId: body.afterDocumentId,
+      beforeId: body.beforeDocumentId,
+    }),
   adminCreateBlock: async (
     documentId: string,
     body: Record<string, unknown>

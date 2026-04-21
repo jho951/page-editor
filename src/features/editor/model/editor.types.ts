@@ -65,13 +65,13 @@ export type EditorOperation =
   | {
       type: "block.replace_content";
       blockId: string;
-      version: number;
+      version?: number;
       content: EditorContent;
     }
   | {
       type: "block.move";
       blockId: string;
-      version: number;
+      version?: number;
       parentId: string | null;
       afterBlockId?: string | null;
       beforeBlockId?: string | null;
@@ -80,7 +80,7 @@ export type EditorOperation =
   | {
       type: "block.delete";
       blockId: string;
-      version: number;
+      version?: number;
     };
 
 export interface EditorTransactionRequest {

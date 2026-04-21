@@ -72,14 +72,14 @@ function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): 
                 <div className={styles.headerCopy}>
                     <div className={styles.headerTitleGroup}>
                         <div className={styles.pageEyebrow}>
-                            Workspace Library
+                            문서함
                         </div>
                         <div className={styles.tab}>
                             <h1 className={styles.tabIcon}>문서 컬렉션</h1>
                         </div>
                     </div>
                     <p className={styles.headerLead}>
-                        가볍게 훑고 바로 열 수 있도록 문서 카드를 정돈했습니다. 종이처럼 차분한 밀도와 넉넉한 여백으로 빠르게 탐색할 수 있습니다.
+                        최근 문서와 저장된 문서를 한 곳에서 확인하고 바로 이어서 작성하세요.
                     </p>
                 </div>
 
@@ -109,8 +109,8 @@ function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): 
             </div>
 
             <div className={styles.headerMeta}>
-                <div className={styles.yearLabel}>2026 Library</div>
-                <div className={styles.yearLabel}>{items.length} items</div>
+                <div className={styles.yearLabel}>2026 문서함</div>
+                <div className={styles.yearLabel}>{items.length}개 문서</div>
             </div>
             <div className={styles.statusRow} aria-live="polite">
                 {loading ? "문서 목록 불러오는 중..." : source === "remote" ? "API 문서 목록 사용 중" : "로컬 카탈로그 사용 중"}

@@ -26,14 +26,14 @@
 .listTitle {
   font-size: var(--font-2xl);
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .listHint {
   margin: 0;
   padding: var(--space-0) var(--space-0) var(--space-12);
   font-size: var(--font-xs);
-  color: #7e7c78;
+  color: rgba(var(--color-text-rgb), 0.62);
   opacity: 0.7;
 }
 
@@ -63,7 +63,7 @@
 }
 
 .item:hover {
-  background: #f4f4f3;
+  background: rgba(var(--color-primary-rgb), 0.08);
 }
 
 .itemMain {
@@ -83,7 +83,7 @@
 
 .itemTime {
   font-size: var(--font-xxs);
-  color: #8e8c88;
+  color: rgba(var(--color-text-rgb), 0.52);
   padding-left: var(--space-22);
 }
 
@@ -94,7 +94,7 @@
   align-items: center;
   justify-content: center;
   font-size: var(--font-xs);
-  color: #8b8985;
+  color: rgba(var(--color-text-rgb), 0.54);
   text-align: center;
 }
 
@@ -124,14 +124,14 @@
 .detailMeta {
   margin-top: var(--space-8);
   font-size: var(--font-xs);
-  color: #8d8b87;
+  color: rgba(var(--color-text-rgb), 0.54);
 }
 
 .detailDesc {
   margin-top: var(--space-14);
   font-size: var(--font-xs);
   line-height: 1.6;
-  color: #5f5e5b;
+  color: rgba(var(--color-text-rgb), 0.76);
 }
 
 .docBody {
@@ -148,6 +148,6 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
-  color: #8a8884;
+  color: rgba(var(--color-text-rgb), 0.54);
   font-size: var(--font-xs);
 }

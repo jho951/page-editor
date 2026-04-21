@@ -2,43 +2,55 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BASE_COMPOSE_FILE="$ROOT_DIR/docker/docker-compose.yml"
 DEV_COMPOSE_FILE="$ROOT_DIR/docker/docker-compose.dev.yml"
 PROD_COMPOSE_FILE="$ROOT_DIR/docker/docker-compose.prod.yml"
-PROJECT_NAME="editor-page"
 
 MODE="${1:-dev}"
 ACTION="${2:-up}"
 
 case "$MODE" in
   dev)
-    COMPOSE_FILE="$DEV_COMPOSE_FILE"
-    SERVICE="editor-dev"
+    PROJECT_NAME="editor-page-dev"
+    COMPOSE_FILES=(-f "$BASE_COMPOSE_FILE" -f "$DEV_COMPOSE_FILE")
+    SERVICE="editor"
     ;;
   prod)
-    COMPOSE_FILE="$PROD_COMPOSE_FILE"
-    SERVICE="editor-prod"
+    PROJECT_NAME="editor-page-prod"
+    COMPOSE_FILES=(-f "$BASE_COMPOSE_FILE" -f "$PROD_COMPOSE_FILE")
+    SERVICE="editor"
     ;;
   *)
-    echo "Usage: $0 [dev|prod] [up|down|build|logs]"
+    echo "Usage: $0 [dev|prod] [up|down|build|logs|restart|ps]"
     exit 1
     ;;
 esac
 
+compose() {
+  docker compose -p "$PROJECT_NAME" "${COMPOSE_FILES[@]}" "$@"
+}
+
 case "$ACTION" in
   up)
-    docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" up --build "$SERVICE"
+    compose up --build --detach --remove-orphans "$SERVICE"
     ;;
   down)
-    docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" down
+    compose down --remove-orphans
     ;;
   build)
-    docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" build "$SERVICE"
+    compose build "$SERVICE"
     ;;
   logs)
-    docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" logs -f "$SERVICE"
+    compose logs -f "$SERVICE"
+    ;;
+  restart)
+    compose restart "$SERVICE"
+    ;;
+  ps)
+    compose ps
     ;;
   *)
-    echo "Usage: $0 [dev|prod] [up|down|build|logs]"
+    echo "Usage: $0 [dev|prod] [up|down|build|logs|restart|ps]"
     exit 1
     ;;
 esac

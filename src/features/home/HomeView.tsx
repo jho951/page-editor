@@ -8,12 +8,10 @@ import { useNavigate } from "react-router-dom";
 
 import { Icon } from "@jho951/ui-components";
 
-import { DocumentCard, mockDocs } from "@features/document/index.ts";
+import { DocumentCard, findDocById, getAllDocs } from "@features/document/index.ts";
 import { selectPinnedDocIds, selectRecentDocIds } from "@features/layout/index.ts";
 
 import styles from "./HomeView.module.css";
-
-type DocItem = (typeof mockDocs)[number];
 
 /**
  * 홈 화면의 최근 문서와 즐겨찾기 목록을 렌더링합니다.
@@ -27,14 +25,16 @@ function HomeView(): React.ReactElement {
 
     const pinnedIds = useSelector(selectPinnedDocIds);
 
+    const catalogDocs = getAllDocs();
+
     const recentDocs = recentIds
-        .map((id) => mockDocs.find((doc) => doc.id === id))
-        .filter((doc): doc is DocItem => Boolean(doc))
+        .map((id) => findDocById(id) ?? catalogDocs.find((doc) => doc.id === id))
+        .filter((doc): doc is NonNullable<typeof doc> => Boolean(doc))
         .slice(0, 4);
 
     const pinnedDocs = pinnedIds
-        .map((id) => mockDocs.find((doc) => doc.id === id))
-        .filter((doc): doc is DocItem => Boolean(doc))
+        .map((id) => findDocById(id) ?? catalogDocs.find((doc) => doc.id === id))
+        .filter((doc): doc is NonNullable<typeof doc> => Boolean(doc))
         .slice(0, 4);
 
     return (

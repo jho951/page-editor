@@ -8,11 +8,9 @@
 .panel {
   width: min(420px, 100%);
   padding: 28px;
-  border-radius: 24px;
+  border-radius: var(--base-radius);
   border: 1px solid var(--color-border);
-  background:
-    radial-gradient(circle at top right, rgba(var(--color-primary-rgb), 0.18), transparent 38%),
-    linear-gradient(180deg, rgba(var(--color-white-rgb), 0.92), rgba(var(--color-bg-gray-rgb), 0.92));
+  background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.96), rgba(var(--color-bg-gray-rgb), 0.92));
   box-shadow: 0 20px 50px rgba(21, 24, 30, 0.08);
 }
 
@@ -21,8 +19,7 @@
   color: var(--color-heading);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .title {

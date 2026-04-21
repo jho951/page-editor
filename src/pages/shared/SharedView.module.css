@@ -1,0 +1,35 @@
+.page {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-14);
+  padding: var(--space-8) var(--space-0) var(--space-4);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--base-radius);
+  background: rgba(var(--color-primary-rgb), 0.1);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.18);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: var(--font-3xl);
+  line-height: 1.12;
+}
+
+.desc {
+  max-width: 720px;
+  color: rgba(var(--color-text-rgb), 0.72);
+  font-size: var(--font-xs);
+  line-height: 1.7;
+}

@@ -3,7 +3,7 @@
     --max-width: 120rem;
 
     --base-border: rgba(var(--color-black-rgb), 0.05);
-    --base-radius: 2.4rem;
+    --base-radius: 8px;
 
     --base-padding: 2rem;
 
@@ -52,8 +52,8 @@
     --control-height-xl: var(--size-44);
     --control-height-2xl: var(--size-48);
 
-    --layout-main-padding: var(--space-16) var(--space-18) var(--space-18) var(--space-0);
-    --layout-content-padding: var(--space-28) var(--space-34) var(--space-48);
+    --layout-main-padding: var(--space-12) var(--space-14) var(--space-14) var(--space-0);
+    --layout-content-padding: var(--space-24) var(--space-28) var(--space-36);
     --layout-section-padding: var(--space-22);
     --layout-section-padding-mobile: var(--space-18);
     --layout-panel-padding: var(--space-18);
@@ -61,7 +61,7 @@
     --layout-editor-padding: var(--space-26);
 
     --lnb-padding: var(--space-18) var(--space-14) var(--space-16) var(--space-18);
-    --lnb-background: linear-gradient(180deg, rgba(var(--color-grad-start-rgb), 0.88), rgba(var(--color-grad-end-rgb), 0.84));
+    --lnb-background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.94), rgba(var(--color-bg-gray-rgb), 0.9));
     --lnb-gap: var(--space-14);
     --lnb-logo-size: var(--size-48);
     --lnb-item-min-height: var(--control-height-xl);
@@ -72,8 +72,8 @@
     --gnb-button-height: var(--control-height-lg);
 
     --base-shadow:
-        0 0.1rem 0.4rem rgba(var(--color-black-rgb), 0.1),
-        inset 0 0.1rem 0.1rem rgba(var(--color-bg-rgb), 0.5);
+        0 0.8rem 2.4rem rgba(var(--color-black-rgb), 0.08),
+        inset 0 0.1rem 0 rgba(var(--color-white-rgb), 0.75);
 
     --base-gradient: linear-gradient(
         to bottom,
@@ -82,7 +82,7 @@
         rgba(var(--color-bg-third-gray-rgb), 0.8)
     );
 
-    --ele-border-radius: 9999px;
+    --ele-border-radius: 8px;
 
     --header-max-width: 100rem;
     --header-height: 8rem;
@@ -98,10 +98,8 @@
 
     --main-background: linear-gradient(
         to bottom,
-        var(--color-primary) 0%,
-        var(--color-bg-gray) 20%,
-        rgba(var(--color-bg-secondary-gray-rgb), 0.5) 50%,
-        var(--color-bg-brown) 70%,
+        var(--color-bg) 0%,
+        var(--color-bg-gray) 50%,
         var(--color-bg-blue) 100%
     );
 
@@ -179,13 +177,13 @@
 }
 
 .title {
-    font-size: clamp(var(--font-2xl), 4vw, var(--font-title));
+    font-size: var(--font-title);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
 }
 
 .desc {
-    font-size:clamp(var(--font-xs), 4vw, var(--font-s));
+    font-size: var(--font-s);
     opacity: 0.7;
 }
 

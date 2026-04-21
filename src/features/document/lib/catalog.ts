@@ -2,7 +2,6 @@
  * 문서 카드 목록을 메모리 기반 카탈로그 형태로 관리합니다.
  */
 
-import { mockDocs } from "@features/document/model/document.mock.ts";
 import type { DocCardItem, DocKind } from "@features/document/model/document.types.ts";
 
 /**
@@ -21,8 +20,6 @@ function seedCatalog(items: DocCardItem[]): void {
     catalogStore.set(item.id, item);
   });
 }
-
-seedCatalog(mockDocs);
 
 /**
  * 현재 메모리 저장소에 있는 전체 문서 카드를 반환합니다.

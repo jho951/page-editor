@@ -7,4 +7,3 @@ export type { GnbProps } from "./gnb/Gnb.types.ts";
 export { Lnb } from "./lnb/Lnb.tsx";
 export { FolderNode } from "./lnb/FolderNode.tsx";
 export type { FolderItem, LnbActiveKey, LnbProps, TrashItem } from "./lnb/Lnb.types.ts";
-export { DEFAULT_FOLDER } from "./constant/lnbitem.ts";

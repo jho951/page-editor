@@ -1,5 +1,3 @@
-/** 공통 HTTP 클라이언트를 생성하고 쿠키 기반 인증 및 에러 정규화를 처리합니다. */
-
 import axios, {
     type AxiosInstance,
     type AxiosRequestConfig,
@@ -21,13 +19,17 @@ export const GATEWAY_BASE_URL: string =
     (typeof import.meta !== 'undefined' &&
         (import.meta as unknown as { env?: { VITE_GATEWAY_BASE_URL?: string; VITE_API_BASE_URL?: string } })
             .env?.VITE_API_BASE_URL) ||
-    'http://localhost:8080';
+    'http://127.0.0.1:8080';
 
 /** 일반 API 요청에 사용할 기본 base URL입니다. */
 export const API_BASE_URL: string = GATEWAY_BASE_URL;
 
-/** 문서 서비스 게이트웨이 base URL입니다. */
-export const DOCUMENTS_API_BASE_URL: string = GATEWAY_BASE_URL;
+/** 문서 서비스도 현재 gateway의 /v1/documents, /v1/admin 라우트를 통해 호출합니다. */
+export const DOCUMENTS_API_BASE_URL: string =
+    (typeof import.meta !== 'undefined' &&
+        (import.meta as unknown as { env?: { VITE_DOCUMENTS_API_BASE_URL?: string } })
+            .env?.VITE_DOCUMENTS_API_BASE_URL) ||
+    GATEWAY_BASE_URL;
 
 /** 일반 공통 axios 인스턴스입니다. */
 export const http: AxiosInstance = axios.create({
@@ -75,7 +77,7 @@ async function applyCookieAuth(config: InternalAxiosRequestConfig): Promise<Inte
     return config;
 }
 
-async function onRejected(client: AxiosInstance, err: unknown): Promise<AxiosResponse> {
+async function onRejected(_client: AxiosInstance, err: unknown): Promise<AxiosResponse> {
     const error = err as AxiosError;
     const config = error.config as RetryableConfig | undefined;
     const status = error.response?.status;

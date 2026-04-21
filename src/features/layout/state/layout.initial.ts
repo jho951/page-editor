@@ -2,9 +2,10 @@
  * 레이아웃 상태의 초기값과 기본 폴더 구조를 정의합니다.
  */
 
-import { DEFAULT_FOLDER } from "@features/layout/ui/constant/lnbitem.ts";
+import { DEFAULT_FOLDER } from "@features/layout/constant/default-folder.ts";
 import { PINNED, RECENTS } from "@features/layout/constant/constant.ts";
-import { readLastLocation, readStringArray } from "@features/layout/state/layout.hook.ts";
+import { readLastLocation } from "@features/layout/state/layout.storage.ts";
+import { readStringArray } from "@shared/lib/storage.ts";
 
 import type { LnbActiveKey, FolderItem, TrashItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 

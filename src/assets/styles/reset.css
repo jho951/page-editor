@@ -19,6 +19,8 @@ html {
  * 💡 기본 설정
  * ------------------------------ */
 body {
+    min-height: 100vh;
+    background: var(--color-bg);
     color: var(--color-text);
     font-size: 1.6rem;
     font-family: var(--base-font), serif;
@@ -36,14 +38,9 @@ body::before {
     inset: 0;
     z-index: 0;
 
-    background: linear-gradient(
-            to bottom,
-            var(--color-primary) 0%,
-            var(--color-bg-gray) 20%,
-            rgba(var(--color-bg-secondary-gray-rgb), 0.5) 50%,
-            var(--color-bg-brown) 70%,
-            var(--color-bg-blue) 100%
-    );
+    background:
+        linear-gradient(180deg, #ffffff 0%, var(--color-bg) 46%, var(--color-bg-gray) 100%);
+    pointer-events: none;
 }
 
 /* ------------------------------

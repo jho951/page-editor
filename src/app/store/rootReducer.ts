@@ -9,7 +9,7 @@ import { shortcutsReducer } from "@features/shortcuts/index.ts";
 import { authReducer } from "@features/auth/index.ts";
 import { editorReducer } from "@features/editor/index.ts";
 
-import { uiReducer } from "@features/ui/state/ui.slice.ts";
+import { uiReducer } from "@app/state/ui.slice.ts";
 
 /**
  * root Reducer reducer입니다.

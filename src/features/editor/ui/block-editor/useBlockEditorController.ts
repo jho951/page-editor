@@ -8,6 +8,7 @@ import {
   editorActions,
   flushEditorTransactions,
   loadEditorDocument,
+  prepareEditorTransactionOperations,
 } from "@features/editor/state/editor.slice.ts";
 import {
   selectEditor,
@@ -93,10 +94,25 @@ export function useBlockEditorController(documentId: string) {
   const hasPendingChanges = useAppSelector(selectEditorHasPendingChanges);
 
   const latestEditorRef = useRef(editor);
+  const saveStateRef = useRef(saveState);
+  const saveTimerRef = useRef<number | null>(null);
+  const pendingForceSaveRef = useRef(false);
 
   useEffect(() => {
     latestEditorRef.current = editor;
   }, [editor]);
+
+  useEffect(() => {
+    saveStateRef.current = saveState;
+  }, [saveState]);
+
+  useEffect(() => {
+    if (saveStateRef.current === "saving") return;
+    if (!pendingForceSaveRef.current) return;
+
+    pendingForceSaveRef.current = false;
+    requestSave(true);
+  }, [saveState]);
 
   useEffect(() => {
     if (editor.document.currentDocumentId === documentId && editor.loaded) return;
@@ -106,18 +122,25 @@ export function useBlockEditorController(documentId: string) {
   useEffect(() => {
     if (saveState !== "dirty") return;
 
-    const timer = window.setTimeout(() => {
+    const timer = window.setInterval(() => {
+      if (saveStateRef.current !== "dirty") return;
+      if (latestEditorRef.current.inFlight) return;
       void dispatch(flushEditorTransactions());
     }, AUTOSAVE_MS);
     dispatch(editorActions.setAutosaveScheduledAt(Date.now() + AUTOSAVE_MS));
-    return () => window.clearTimeout(timer);
+    return () => window.clearInterval(timer);
   }, [dispatch, saveState]);
 
   useEffect(() => {
     if (!pendingShortcut) return;
 
     if (pendingShortcut.command === "save-page") {
-      void dispatch(flushEditorTransactions());
+      console.log("[EDITOR][save-page]", {
+        shortcutId: pendingShortcut.id,
+        command: pendingShortcut.command,
+        saveState: saveStateRef.current,
+      });
+      requestSave(true);
       dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
       return;
     }
@@ -143,7 +166,7 @@ export function useBlockEditorController(documentId: string) {
           clientId: "web-editor",
           batchId: `leave-${Date.now()}`,
           documentVersion: editor.document.byId[documentId]?.version ?? 0,
-          operations: editor.queue.ops,
+          operations: prepareEditorTransactionOperations(editor, editor.queue.ops),
         });
       }
       event.preventDefault();
@@ -163,7 +186,7 @@ export function useBlockEditorController(documentId: string) {
         clientId: "web-editor",
         batchId: `pagehide-${Date.now()}`,
         documentVersion: editor.document.byId[documentId]?.version ?? 0,
-        operations: editor.queue.ops,
+        operations: prepareEditorTransactionOperations(editor, editor.queue.ops),
       });
     };
 
@@ -173,6 +196,10 @@ export function useBlockEditorController(documentId: string) {
 
   useEffect(() => {
     return () => {
+      if (saveTimerRef.current !== null) {
+        window.clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
 
       const current = latestEditorRef.current;
       if (current.document.currentDocumentId !== documentId) return;
@@ -182,12 +209,45 @@ export function useBlockEditorController(documentId: string) {
   }, [dispatch, documentId]);
 
   const statusText = useMemo(() => formatStatus(saveState, lastSavedAt), [saveState, lastSavedAt]);
+  function requestSave(force = false): void {
+    if (saveStateRef.current === "saving") {
+      if (force) {
+        pendingForceSaveRef.current = true;
+        console.log("[EDITOR][request-save-deferred]", {
+          force,
+          saveState: saveStateRef.current,
+          currentDocumentId: latestEditorRef.current.document.currentDocumentId,
+          queueLength: latestEditorRef.current.queue.ops.length,
+          inFlight: latestEditorRef.current.inFlight,
+        });
+      }
+      return;
+    }
+    if (saveTimerRef.current !== null) {
+      window.clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = window.setTimeout(() => {
+      saveTimerRef.current = null;
+      if (saveStateRef.current === "saving") return;
+      console.log("[EDITOR][request-save]", {
+        force,
+        saveState: saveStateRef.current,
+        currentDocumentId: latestEditorRef.current.document.currentDocumentId,
+        queueLength: latestEditorRef.current.queue.ops.length,
+        inFlight: latestEditorRef.current.inFlight,
+      });
+      void dispatch(flushEditorTransactions(force ? { force: true } : undefined));
+    }, 0);
+  }
 
   return {
     blocks,
     dispatch,
     errorMessage,
+    saveState,
     selectedBlockId,
+    saveDocument: requestSave,
     statusText,
   };
 }

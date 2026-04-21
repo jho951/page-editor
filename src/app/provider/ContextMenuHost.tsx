@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Menu } from "@jho951/ui-components";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
-import { uiActions } from "@features/ui/state/ui.slice.ts";
+import { uiActions } from "@app/state/ui.slice.ts";
 
 /**
  * 전역 컨텍스트 메뉴를 표시하는 호스트 컴포넌트입니다.

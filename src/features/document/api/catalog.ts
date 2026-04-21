@@ -4,7 +4,6 @@
 
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
-import { mockDocs } from "@features/document/model/document.mock.ts";
 import type { DocCardItem, DocKind } from "@features/document/model/document.types.ts";
 import type { ApiEnvelope, FetchCatalogResult, RemoteCatalogItem } from "@features/document/api/catalog.types.ts";
 import { getCatalogByKind, replaceCatalog } from "@features/document/lib/catalog.ts";
@@ -20,13 +19,12 @@ const REMOTE_DOCS_ENABLED =
  * 원격 조회 실패 시 사용할 fallback 문서 목록을 반환합니다.
  *
  * @param kind 조회 또는 교체 대상 종류입니다.
- * @returns 캐시 또는 mock 데이터에서 가져온 카드 목록을 반환합니다.
+ * @returns 캐시된 카드 목록을 반환합니다. 없으면 빈 배열을 반환합니다.
  */
 function fallbackCatalog(kind: DocKind): DocCardItem[] {
 
   const cached = getCatalogByKind(kind);
-  if (cached.length > 0) return cached;
-  return [...mockDocs];
+  return cached;
 }
 
 /**
@@ -65,13 +63,7 @@ function toCardItem(item: RemoteCatalogItem, fallbackKind: DocKind): DocCardItem
  * @returns 문서 목록 조회에 사용할 endpoint 문자열을 반환합니다.
  */
 function endpointByKind(_kind: DocKind): string {
-  if (typeof import.meta === "undefined") return "";
-
-  const env = (import.meta as unknown as { env?: { VITE_DOCUMENTS_WORKSPACE_ID?: string } }).env;
-  const workspaceId = env?.VITE_DOCUMENTS_WORKSPACE_ID?.trim();
-  if (!workspaceId) return "";
-
-  return endpoints.workspaceDocuments(workspaceId);
+  return endpoints.documents;
 }
 
 /**
@@ -90,8 +82,6 @@ export async function fetchCatalog(kind: DocKind): Promise<FetchCatalogResult> {
 
   try {
     const endpoint = endpointByKind(kind);
-    if (!endpoint) throw new Error("workspace id is not configured");
-
     const res = await documentsApi.get<ApiEnvelope<RemoteCatalogItem[]>>(endpoint);
 
     const remoteItems = unwrapList(res)

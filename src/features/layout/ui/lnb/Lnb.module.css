@@ -4,8 +4,8 @@
     flex-direction: column;
     padding: var(--lnb-padding);
     overflow: hidden;
-    background: linear-gradient(180deg, rgba(255, 251, 245, 0.88), rgba(244, 237, 227, 0.84));
-    border-right: 1px solid rgba(61, 53, 45, 0.08);
+    background: var(--lnb-background);
+    border-right: 1px solid var(--color-border);
     gap: var(--lnb-gap);
 }
 
@@ -45,7 +45,7 @@
 .trashBlock {
     width: 100%;
     border: 1px solid transparent;
-    border-radius: 18px;
+    border-radius: var(--base-radius);
     padding: var(--space-10) var(--space-12);
     min-height: var(--lnb-item-min-height);
     text-align: left;
@@ -56,8 +56,8 @@
 }
 
 .trashBlockActive {
-    background: rgba(110, 141, 116, 0.12);
-    border-color: rgba(110, 141, 116, 0.18);
+    background: rgba(var(--color-primary-rgb), 0.12);
+    border-color: rgba(var(--color-primary-rgb), 0.24);
 }
 
 .trashLeft {
@@ -82,4 +82,45 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+@media (max-width: 840px) {
+    .lnbWrap {
+        max-height: 168px;
+        padding: var(--space-10) var(--space-12);
+        border-right: 0;
+        border-bottom: 1px solid var(--color-border);
+        gap: var(--space-8);
+    }
+
+    .topRow {
+        justify-content: space-between;
+    }
+
+    .logoBtn {
+        width: var(--size-42);
+        height: var(--size-42);
+    }
+
+    .treeArea {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 0 var(--space-4);
+        gap: var(--space-6);
+    }
+
+    .treeArea > * {
+        flex: 0 0 auto;
+        min-width: 172px;
+    }
+
+    .trashPane {
+        margin-bottom: 0;
+    }
+
+    .trashBlock {
+        min-height: var(--control-height-md);
+        padding: var(--space-8) var(--space-10);
+    }
 }
