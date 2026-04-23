@@ -5,6 +5,14 @@
 import { DOCUMENTS_API_BASE_URL, documentsApi } from "@shared/api/client.ts";
 import type { HttpError } from "@shared/api/client.types.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
+import type {
+  ApiEnvelope,
+  BlockResponse,
+  DocumentResponse,
+  DocumentTransactionAppliedOperationResponse,
+  DocumentTransactionResponse,
+} from "@shared/api/service-contract.ts";
 import type {
   EditorConflictItem,
   EditorConflictResponse,
@@ -29,10 +37,6 @@ const EMPTY_BLOCK_CONTENT: EditorContent = {
   marks: [],
 };
 
-type GlobalResponse<T> = {
-  data?: T;
-};
-
 type RichTextMark = EditorMark;
 
 type RichTextContent = EditorRichTextContent;
@@ -46,22 +50,8 @@ function toGatewayParentRef(parentId: string | null | undefined): string | null 
   return parentId.startsWith("root-") ? null : parentId;
 }
 
-type RemoteDocumentResponse = {
-  id: string;
-  title: string;
-  version?: number;
-};
-
-type RemoteBlockResponse = {
-  id: string;
-  parentId?: string | null;
-  orderKey?: string;
-  sortKey?: string;
-  version: number;
-  type?: "TEXT";
-  content: RichTextContent;
-  deletedAt?: string | null;
-};
+type RemoteDocumentResponse = DocumentResponse;
+type RemoteBlockResponse = Omit<BlockResponse, "content"> & { content: RichTextContent };
 
 type RemoteTransactionResult = {
   opId?: string;
@@ -71,31 +61,13 @@ type RemoteTransactionResult = {
   version?: number;
 };
 
-type RemoteAppliedOperation = {
-  opId?: string;
-  status?: string;
-  tempId?: string | null;
-  blockId?: string | null;
-  version?: number | null;
-  sortKey?: string | null;
-  deletedAt?: string | null;
-};
+type RemoteAppliedOperation = DocumentTransactionAppliedOperationResponse;
 
-type RemoteTransactionResponse = {
-  batchId?: string;
-  documentVersion?: number;
+type RemoteTransactionResponse = DocumentTransactionResponse & {
   tempIdMappings?: Record<string, string>;
   idMappings?: Record<string, string>;
   results?: RemoteTransactionResult[];
-  appliedOperations?: RemoteAppliedOperation[];
 };
-
-function unwrapEnvelope<T>(payload: T | GlobalResponse<T>): T {
-  if (payload && typeof payload === "object" && "data" in (payload as GlobalResponse<T>)) {
-    return (payload as GlobalResponse<T>).data as T;
-  }
-  return payload as T;
-}
 
 function toRichTextContent(content: EditorContent): RichTextContent {
   return {
@@ -164,9 +136,11 @@ function toGatewayTransactionPayload(payload: EditorTransactionRequest): Gateway
 
 function normalizeTransactionSuccess(
   payload: EditorTransactionRequest,
-  rawResponse: GlobalResponse<RemoteTransactionResponse> | RemoteTransactionResponse | EditorTransactionSuccess
+  rawResponse: ApiEnvelope<RemoteTransactionResponse> | RemoteTransactionResponse | EditorTransactionSuccess
 ): EditorTransactionSuccess {
-  const unwrapped = unwrapEnvelope(rawResponse as GlobalResponse<RemoteTransactionResponse> | RemoteTransactionResponse);
+  const unwrapped = unwrapApiEnvelope(
+    rawResponse as ApiEnvelope<RemoteTransactionResponse> | RemoteTransactionResponse
+  );
   const response = (unwrapped ?? {}) as RemoteTransactionResponse;
 
   const appliedOperations = Array.isArray(response.appliedOperations) ? response.appliedOperations : [];
@@ -588,12 +562,12 @@ export const editorTransactionsApi = {
   loadDocument: async (documentId: string): Promise<EditorDocumentSnapshot> => {
     try {
       const [documentResponse, blocksResponse] = await Promise.all([
-        documentsApi.get<GlobalResponse<RemoteDocumentResponse>>(endpoints.documentById(documentId)),
-        documentsApi.get<GlobalResponse<RemoteBlockResponse[]>>(endpoints.documentBlocks(documentId)),
+        documentsApi.get<ApiEnvelope<RemoteDocumentResponse>>(endpoints.documentById(documentId)),
+        documentsApi.get<ApiEnvelope<RemoteBlockResponse[]>>(endpoints.documentBlocks(documentId)),
       ]);
 
-      const document = unwrapEnvelope(documentResponse);
-      const blocks = unwrapEnvelope(blocksResponse);
+      const document = unwrapApiEnvelope(documentResponse);
+      const blocks = unwrapApiEnvelope(blocksResponse);
 
       return {
         id: document.id,
@@ -621,7 +595,7 @@ export const editorTransactionsApi = {
   ): Promise<EditorTransactionSuccess> => {
     try {
       const response = await documentsApi.post<
-        GlobalResponse<RemoteTransactionResponse> | RemoteTransactionResponse,
+        ApiEnvelope<RemoteTransactionResponse> | RemoteTransactionResponse,
         ReturnType<typeof toGatewayTransactionPayload>
       >(endpoints.documentTransactions(documentId), toGatewayTransactionPayload(payload));
 

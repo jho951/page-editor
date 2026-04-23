@@ -1,6 +1,13 @@
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
 import type { HttpError } from "@shared/api/client.types.ts";
+import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
+import type {
+  ApiEnvelope,
+  DocumentResponse,
+  DocumentVisibility,
+  EditorMoveResponse,
+} from "@shared/api/service-contract.ts";
 import { generateId } from "@jho951/ui-components";
 
 
@@ -10,11 +17,15 @@ export type CreatePageBody = {
 };
 
 export type CreatePageResponse = {
-  id: string;
-  title?: string;
-  parentId?: string | null;
-  version?: number;
-  visibility?: "PUBLIC" | "PRIVATE";
+  id: DocumentResponse["id"];
+  title?: DocumentResponse["title"];
+  parentId?: DocumentResponse["parentId"];
+  version?: DocumentResponse["version"];
+  visibility?: DocumentVisibility;
+  icon?: DocumentResponse["icon"];
+  cover?: DocumentResponse["cover"];
+  sortKey?: DocumentResponse["sortKey"];
+  deletedAt?: DocumentResponse["deletedAt"];
 };
 
 export type UpdatePageBody = {
@@ -25,21 +36,12 @@ export type UpdatePageBody = {
 };
 
 export type UpdatePageVisibilityBody = {
-  visibility: "PUBLIC" | "PRIVATE";
+  visibility: DocumentVisibility;
   version: number;
 };
 
-export type ListDocumentsItem = {
-  id?: string | number;
-  title?: string;
+export type ListDocumentsItem = Pick<DocumentResponse, "id" | "title" | "parentId" | "sortKey"> & {
   name?: string;
-  parentId?: string | number | null;
-};
-
-type GlobalResponse<T> = {
-  data?: T;
-  items?: T;
-  rows?: T;
 };
 
 type CreateDocumentRequest = {
@@ -61,29 +63,18 @@ function normalizeParentId(parentId: string | null | undefined): string | null |
   return parentId;
 }
 
-function unwrapEnvelope<T>(payload: T | GlobalResponse<T>): T {
-  if (payload && typeof payload === "object") {
-    const envelope = payload as GlobalResponse<T>;
-    if (envelope.data !== undefined) return envelope.data;
-    if (envelope.items !== undefined) return envelope.items;
-    if (envelope.rows !== undefined) return envelope.rows;
-  }
-  return payload as T;
-}
-
 type MoveDocumentRequest = {
   targetParentId: string | null;
   afterDocumentId: string | null;
   beforeDocumentId: string | null;
 };
 
-type MoveDocumentResponse = {
-  resourceType?: "DOCUMENT";
-  resourceId?: string;
-  parentId?: string | null;
-  version?: number;
-  documentVersion?: number;
-  sortKey?: string;
+type MoveDocumentCompatRequest = {
+  resourceType: "DOCUMENT";
+  resourceId: string;
+  targetParentId: string | null;
+  afterId: string | null;
+  beforeId: string | null;
 };
 
 /**
@@ -91,22 +82,22 @@ type MoveDocumentResponse = {
  */
 export const pagesApi = {
   listDocuments: async (): Promise<ListDocumentsItem[]> => {
-    const response = await documentsApi.get<ListDocumentsItem[] | GlobalResponse<ListDocumentsItem[]>>(
+    const response = await documentsApi.get<ListDocumentsItem[] | ApiEnvelope<ListDocumentsItem[]>>(
       endpoints.documents
     );
 
-    const unwrapped = unwrapEnvelope<ListDocumentsItem[]>(response);
+    const unwrapped = unwrapApiEnvelope<ListDocumentsItem[]>(response);
     return Array.isArray(unwrapped) ? unwrapped : [];
   },
   getPage: async (id: string): Promise<CreatePageResponse> => {
-    const response = await documentsApi.get<GlobalResponse<CreatePageResponse> | CreatePageResponse>(
+    const response = await documentsApi.get<ApiEnvelope<DocumentResponse> | DocumentResponse>(
       endpoints.documentById(id)
     );
-    return unwrapEnvelope(response);
+    return unwrapApiEnvelope(response);
   },
   createPage: async (body: CreatePageBody): Promise<CreatePageResponse> => {
     try {
-      const response = await documentsApi.post<GlobalResponse<CreatePageResponse> | CreatePageResponse, CreateDocumentRequest>(
+      const response = await documentsApi.post<ApiEnvelope<DocumentResponse> | DocumentResponse, CreateDocumentRequest>(
         endpoints.documents,
         {
           parentId: normalizeParentId(body.parentId) ?? null,
@@ -114,7 +105,7 @@ export const pagesApi = {
         }
       );
 
-      return unwrapEnvelope(response);
+      return unwrapApiEnvelope(response);
     } catch (error) {
       const e = error as HttpError;
       if (typeof e.status === "number" && ![404, 405, 501].includes(e.status)) throw error;
@@ -127,7 +118,7 @@ export const pagesApi = {
     }
   },
   updatePage: async (id: string, body: UpdatePageBody): Promise<CreatePageResponse> => {
-    const response = await documentsApi.patch<GlobalResponse<CreatePageResponse> | CreatePageResponse, UpdateDocumentRequest>(
+    const response = await documentsApi.patch<ApiEnvelope<DocumentResponse> | DocumentResponse, UpdateDocumentRequest>(
       endpoints.documentById(id),
       {
         title: body.title,
@@ -137,7 +128,7 @@ export const pagesApi = {
       }
     );
 
-    return unwrapEnvelope(response);
+    return unwrapApiEnvelope(response);
   },
   moveToTrash: async (documentId: string): Promise<void> => {
     await documentsApi.patch<unknown, undefined>(endpoints.documentTrash(documentId));
@@ -153,14 +144,8 @@ export const pagesApi = {
     body: MoveDocumentRequest
   ): Promise<CreatePageResponse> => {
     const response = await documentsApi.post<
-      GlobalResponse<MoveDocumentResponse> | MoveDocumentResponse,
-      {
-        resourceType: "DOCUMENT";
-        resourceId: string;
-        targetParentId: string | null;
-        afterId: string | null;
-        beforeId: string | null;
-      }
+      ApiEnvelope<EditorMoveResponse | null> | EditorMoveResponse | null,
+      MoveDocumentCompatRequest
     >(endpoints.editorOperationMove, {
       resourceType: "DOCUMENT",
       resourceId: documentId,
@@ -169,11 +154,14 @@ export const pagesApi = {
       beforeId: body.beforeDocumentId,
     });
 
-    const unwrapped = unwrapEnvelope(response);
+    const unwrapped = unwrapApiEnvelope<EditorMoveResponse | null>(response);
+    const moveResponse = unwrapped && typeof unwrapped === "object" ? unwrapped : null;
+
     return {
-      id: unwrapped.resourceId ?? documentId,
-      parentId: unwrapped.parentId ?? body.targetParentId,
-      version: unwrapped.documentVersion ?? unwrapped.version,
+      id: moveResponse?.resourceId ?? documentId,
+      parentId: moveResponse?.parentId ?? body.targetParentId,
+      version: moveResponse?.documentVersion ?? moveResponse?.version,
+      sortKey: moveResponse?.sortKey,
     };
   },
   updatePageVisibility: async (
@@ -181,10 +169,10 @@ export const pagesApi = {
     body: UpdatePageVisibilityBody
   ): Promise<CreatePageResponse> => {
     const response = await documentsApi.patch<
-      GlobalResponse<CreatePageResponse> | CreatePageResponse,
+      ApiEnvelope<DocumentResponse> | DocumentResponse,
       UpdatePageVisibilityBody
     >(endpoints.documentVisibility(documentId), body);
 
-    return unwrapEnvelope(response);
+    return unwrapApiEnvelope(response);
   },
 };

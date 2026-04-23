@@ -7,6 +7,8 @@ import type { LnbActiveKey, FolderItem } from "@features/layout/ui/lnb/Lnb.types
 import { initialState, type OpenFolderMap } from "@features/layout/state/layout.initial.ts";
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
+import type { ApiEnvelope, TrashDocumentResponse } from "@shared/api/service-contract.ts";
 import { pagesApi, type ListDocumentsItem } from "@features/layout/api/pages.ts";
 import { upsertCatalogItem } from "@features/document/index.ts";
 import type { TrashItem } from "@features/layout/ui/lnb/Lnb.types.ts";
@@ -106,30 +108,11 @@ type DocumentTreeNode = {
     node: FolderItem;
 };
 
-type GlobalResponse<T> = {
-    data?: T;
-    items?: T;
-    rows?: T;
-};
-
-type RemoteTrashItem = {
+type RemoteTrashItem = TrashDocumentResponse & {
     id?: string | number;
-    documentId?: string | number;
-    title?: string;
     label?: string;
     name?: string;
-    deletedAt?: string | number;
 };
-
-function unwrapEnvelope<T>(payload: T | GlobalResponse<T>): T {
-    if (payload && typeof payload === "object") {
-        const envelope = payload as GlobalResponse<T>;
-        if (envelope.data !== undefined) return envelope.data;
-        if (envelope.items !== undefined) return envelope.items;
-        if (envelope.rows !== undefined) return envelope.rows;
-    }
-    return payload as T;
-}
 
 function toTrashItem(item: RemoteTrashItem): TrashItem | null {
     const idSource = item.documentId ?? item.id;
@@ -213,11 +196,11 @@ export const fetchTrashDocumentsRemote = createAsyncThunk<
     { rejectValue: string }
 >("layout/fetchTrashDocumentsRemote", async (_arg, { rejectWithValue }) => {
     try {
-        const response = await documentsApi.get<GlobalResponse<RemoteTrashItem[]> | RemoteTrashItem[]>(
+        const response = await documentsApi.get<ApiEnvelope<RemoteTrashItem[]> | RemoteTrashItem[]>(
             endpoints.documentsTrash
         );
 
-        const unwrapped = unwrapEnvelope(response);
+        const unwrapped = unwrapApiEnvelope(response);
         return (Array.isArray(unwrapped) ? unwrapped : [])
             .map((item) => toTrashItem(item))
             .filter((item): item is TrashItem => item !== null);

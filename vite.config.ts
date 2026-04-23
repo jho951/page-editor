@@ -15,14 +15,14 @@ export default defineConfig({
     },
     server: {
         host: true,
-        port: Number(process.env.VITE_PORT ?? 5173),
+        port: Number(process.env.VITE_PORT ?? 3000),
         proxy: {
             "/v1": {
-                target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8080",
+                target: process.env.VITE_API_PROXY_TARGET ?? "http://localhost:8080",
                 changeOrigin: true,
             },
             "/auth": {
-                target: process.env.VITE_API_PROXY_TARGET ?? "http://127.0.0.1:8080",
+                target: process.env.VITE_API_PROXY_TARGET ?? "http://localhost:8080",
                 changeOrigin: true,
             },
         },

@@ -4,6 +4,7 @@
 
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
 import type { DocCardItem, DocKind } from "@features/document/model/document.types.ts";
 import type { ApiEnvelope, FetchCatalogResult, RemoteCatalogItem } from "@features/document/api/catalog.types.ts";
 import { getCatalogByKind, replaceCatalog } from "@features/document/lib/catalog.ts";
@@ -35,7 +36,8 @@ function fallbackCatalog(kind: DocKind): DocCardItem[] {
  */
 function unwrapList(payload: ApiEnvelope<RemoteCatalogItem[]> | null | undefined): RemoteCatalogItem[] {
   if (!payload || typeof payload !== "object") return [];
-  return Array.isArray(payload.data) ? payload.data : [];
+  const unwrapped = unwrapApiEnvelope<RemoteCatalogItem[]>(payload);
+  return Array.isArray(unwrapped) ? unwrapped : [];
 }
 
 /**
@@ -50,8 +52,8 @@ function toCardItem(item: RemoteCatalogItem, fallbackKind: DocKind): DocCardItem
 
   return {
     id: String(item.id),
-    title: String(item.title ?? item.name ?? "Untitled"),
-    accent: String(item.accent ?? item.color ?? "#D7D7D7"),
+    title: String(item.title ?? "Untitled"),
+    accent: "#D7D7D7",
     kind: fallbackKind,
   };
 }
@@ -62,7 +64,8 @@ function toCardItem(item: RemoteCatalogItem, fallbackKind: DocKind): DocCardItem
  * @param _kind 조회 대상 문서 종류입니다.
  * @returns 문서 목록 조회에 사용할 endpoint 문자열을 반환합니다.
  */
-function endpointByKind(_kind: DocKind): string {
+function endpointByKind(kind: DocKind): string {
+  void kind;
   return endpoints.documents;
 }
 

@@ -19,7 +19,7 @@ export const GATEWAY_BASE_URL: string =
     (typeof import.meta !== 'undefined' &&
         (import.meta as unknown as { env?: { VITE_GATEWAY_BASE_URL?: string; VITE_API_BASE_URL?: string } })
             .env?.VITE_API_BASE_URL) ||
-    'http://127.0.0.1:8080';
+    'http://localhost:8080';
 
 /** 일반 API 요청에 사용할 기본 base URL입니다. */
 export const API_BASE_URL: string = GATEWAY_BASE_URL;

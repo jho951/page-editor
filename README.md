@@ -7,7 +7,7 @@ npm install
 npm run dev
 ```
 
-기본 개발 서버 주소: `http://127.0.0.1:5173`
+기본 개발 서버 주소: `http://localhost:3000`
 
 ## Docker 실행
 
@@ -17,7 +17,7 @@ npm run dev
 ./scripts/run.docker.sh dev up
 ```
 
-- 주소: `http://127.0.0.1:5173`
+- 주소: `http://localhost:3000`
 - 컨테이너 내부 Vite 프록시 `/v1`, `/auth` 대상: `http://host.docker.internal:8080`
 - `editor` 서비스에 dev compose 오버레이(`docker/docker-compose.dev.yml`)를 적용해 실행
 - `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh dev logs`로 확인
@@ -28,7 +28,7 @@ npm run dev
 ./scripts/run.docker.sh prod up
 ```
 
-- 주소: `http://127.0.0.1:8081`
+- 주소: `http://localhost:8081`
 - `editor` 서비스에 prod compose 오버레이(`docker/docker-compose.prod.yml`)를 적용해 실행
 - `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh prod logs`로 확인
 
@@ -77,12 +77,12 @@ npm run dev
 
 [`.env`](.env.example)
 
-현재 로컬 MSA 기준 기본 gateway는 `http://127.0.0.1:8080` 이며, 프론트는 gateway의 `/v1/**` 공개 API를 호출합니다.
+현재 로컬 MSA 기준 기본 gateway는 `http://localhost:8080` 이며, 프론트는 gateway의 `/v1/**` 공개 API를 호출합니다.
 
 ## API 연동 기준
 
 - 기본 API base URL은 `VITE_GATEWAY_BASE_URL` 입니다.
-- 로컬 기본값은 `http://127.0.0.1:8080` 입니다.
+- 로컬 기본값은 `http://localhost:8080` 입니다.
 - 개발 서버에서 상대 경로로 호출할 경우 Vite proxy가 `/v1/**`, legacy `/auth/**`를 `VITE_API_PROXY_TARGET`으로 전달합니다.
 - 문서 목록 계약:
   - `GET /v1/documents`
@@ -109,7 +109,7 @@ npm run dev
 -> 8080/v1/auth/sso/start
 -> GitHub
 -> 8080/v1/login/oauth2/code/github
--> 5173/auth/callback
+-> 3000/auth/callback
 ```
 
 프론트는 아래 규칙을 따릅니다.
@@ -117,5 +117,5 @@ npm run dev
 - GitHub 인증 정보를 직접 처리하지 않습니다.
 - `/auth/callback` 에서 세션 쿠키가 이미 설정되어 있다고 가정합니다.
 - `GET /v1/auth/me` 와 `POST /v1/auth/refresh` 로 로그인 상태를 확정합니다.
-- SSO 시작은 `http://127.0.0.1:8080/v1/auth/sso/start` 같은 gateway 공개 경로를 사용합니다.
+- SSO 시작은 `http://localhost:8080/v1/auth/sso/start` 같은 gateway 공개 경로를 사용합니다.
 - 연동 계약 문서: [docs/AUTH_REDIRECT_CONTRACT.md](./docs/AUTH_REDIRECT_CONTRACT.md)

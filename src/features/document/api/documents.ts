@@ -4,29 +4,37 @@
 
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
+import type {
+  ApiEnvelope,
+  DocumentResponse,
+  DocumentTransactionResponse,
+  DocumentVisibility,
+  EditorMoveResponse,
+  TrashDocumentResponse,
+} from "@shared/api/service-contract.ts";
 
-type Envelope<T> = { data?: T };
-
-function unwrap<T>(payload: T | Envelope<T>): T {
-  if (payload && typeof payload === "object" && "data" in (payload as Envelope<T>)) {
-    return (payload as Envelope<T>).data as T;
-  }
-  return payload as T;
-}
+type EditorMoveCompatRequest = {
+  resourceType: "DOCUMENT";
+  resourceId: string;
+  targetParentId: string | null;
+  afterId: string | null;
+  beforeId: string | null;
+};
 
 export const documentsDomainApi = {
-  getDocuments: async (): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.documents),
-  getTrashDocuments: async (): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.documentsTrash),
+  getDocuments: async (): Promise<DocumentResponse[]> =>
+    unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<DocumentResponse[]>>(endpoints.documents)),
+  getTrashDocuments: async (): Promise<TrashDocumentResponse[]> =>
+    unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<TrashDocumentResponse[]>>(endpoints.documentsTrash)),
   createDocument: async (
     body: Record<string, unknown>
-  ): Promise<unknown> =>
-    documentsApi.post<unknown, Record<string, unknown>>(endpoints.documents, body),
-  getDocument: async (documentId: string): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.documentById(documentId)),
-  getDocumentBlocks: async (documentId: string): Promise<unknown> =>
-    documentsApi.get<unknown>(endpoints.documentBlocks(documentId)),
+  ): Promise<DocumentResponse> =>
+    unwrapApiEnvelope(await documentsApi.post<ApiEnvelope<DocumentResponse>, Record<string, unknown>>(endpoints.documents, body)),
+  getDocument: async (documentId: string): Promise<DocumentResponse> =>
+    unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<DocumentResponse>>(endpoints.documentById(documentId))),
+  getDocumentBlocks: async (documentId: string): Promise<unknown[]> =>
+    unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<unknown[]>>(endpoints.documentBlocks(documentId))),
   updateDocument: async (
     documentId: string,
     body: {
@@ -35,34 +43,34 @@ export const documentsDomainApi = {
       icon?: unknown;
       cover?: unknown;
     }
-  ): Promise<unknown> =>
-    documentsApi.patch<
-      unknown,
+  ): Promise<DocumentResponse> =>
+    unwrapApiEnvelope(await documentsApi.patch<
+      ApiEnvelope<DocumentResponse>,
       {
         title: string;
         version: number;
         icon?: unknown;
         cover?: unknown;
       }
-    >(endpoints.documentById(documentId), body),
+    >(endpoints.documentById(documentId), body)),
   updateDocumentVisibility: async (
     documentId: string,
-    body: { visibility: "PUBLIC" | "PRIVATE"; version: number }
-  ): Promise<unknown> =>
-    documentsApi.patch<unknown, { visibility: "PUBLIC" | "PRIVATE"; version: number }>(
+    body: { visibility: DocumentVisibility; version: number }
+  ): Promise<DocumentResponse> =>
+    unwrapApiEnvelope(await documentsApi.patch<ApiEnvelope<DocumentResponse>, { visibility: DocumentVisibility; version: number }>(
       endpoints.documentVisibility(documentId),
       body
-    ),
+    )),
   postDocumentTransactions: async (
     documentId: string,
     body: Record<string, unknown>
-  ): Promise<unknown> =>
-    documentsApi.post<unknown, Record<string, unknown>>(endpoints.documentTransactions(documentId), body),
+  ): Promise<DocumentTransactionResponse> =>
+    unwrapApiEnvelope(await documentsApi.post<ApiEnvelope<DocumentTransactionResponse>, Record<string, unknown>>(endpoints.documentTransactions(documentId), body)),
   deleteDocument: async (documentId: string): Promise<void> => {
     await documentsApi.delete<unknown>(endpoints.documentById(documentId));
   },
-  trashDocument: async (documentId: string): Promise<unknown> =>
-    documentsApi.patch<unknown, undefined>(endpoints.documentTrash(documentId)),
+  trashDocument: async (documentId: string): Promise<null | undefined> =>
+    unwrapApiEnvelope(await documentsApi.patch<ApiEnvelope<null | undefined>, undefined>(endpoints.documentTrash(documentId))),
   restoreDocument: async (documentId: string): Promise<void> => {
     await documentsApi.post<unknown, undefined>(endpoints.documentRestore(documentId));
   },
@@ -73,20 +81,14 @@ export const documentsDomainApi = {
       afterDocumentId: string | null;
       beforeDocumentId: string | null;
     }
-  ): Promise<unknown> =>
-    documentsApi.post<unknown, {
-      resourceType: "DOCUMENT";
-      resourceId: string;
-      targetParentId: string | null;
-      afterId: string | null;
-      beforeId: string | null;
-    }>(endpoints.editorOperationMove, {
+  ): Promise<EditorMoveResponse | null> =>
+    unwrapApiEnvelope(await documentsApi.post<ApiEnvelope<EditorMoveResponse | null>, EditorMoveCompatRequest>(endpoints.editorOperationMove, {
       resourceType: "DOCUMENT",
       resourceId: documentId,
       targetParentId: body.targetParentId,
       afterId: body.afterDocumentId,
       beforeId: body.beforeDocumentId,
-    }),
+    })),
   adminCreateBlock: async (
     documentId: string,
     body: Record<string, unknown>
@@ -105,5 +107,5 @@ export const documentsDomainApi = {
     body: Record<string, unknown>
   ): Promise<unknown> =>
     documentsApi.post<unknown, Record<string, unknown>>(endpoints.adminBlockMove(blockId), body),
-  unwrap,
+  unwrap: unwrapApiEnvelope,
 };
