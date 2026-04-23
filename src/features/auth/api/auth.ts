@@ -21,10 +21,10 @@ export type AuthUser = {
  * @returns 시작 프론트엔드 기본 URL을 반환합니다.
  */
 function getStartFrontendUrl(): string {
-  if (typeof import.meta === "undefined") return "http://localhost:3000";
+  if (typeof import.meta === "undefined") return "http://localhost:5173";
 
   const env = (import.meta as unknown as { env?: { VITE_START_FRONTEND_URL?: string } }).env;
-  return env?.VITE_START_FRONTEND_URL ?? "http://localhost:3000";
+  return env?.VITE_START_FRONTEND_URL ?? "http://localhost:5173";
 }
 
 /**
