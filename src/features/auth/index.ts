@@ -16,6 +16,7 @@ export { AuthCallbackView } from "@features/auth/ui/AuthCallbackView.tsx";
 export { SignInRedirectView } from "@features/auth/ui/SignInRedirectView.tsx";
 export {
   authApi,
+  buildPostAuthSuccessUrl,
   buildStartFrontendRootUrl,
   buildSsoStartUrl,
   buildStartFrontendSignInUrl,

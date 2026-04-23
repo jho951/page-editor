@@ -12,8 +12,28 @@ import { BlockEditor } from "@features/editor/index.ts";
 import { upsertCatalogItem } from "@features/document/lib/catalog.ts";
 import { pagesApi } from "@features/layout/api/pages.ts";
 import { layoutActions } from "@features/layout/index.ts";
+import type { HttpError } from "@shared/api/client.types.ts";
 
 import styles from "./DocumentDetailView.module.css";
+
+type DocumentDetailState = {
+    id: string;
+    title: string;
+    version: number;
+};
+
+function normalizeDocumentTitle(title: string | null | undefined): string {
+    const nextTitle = String(title ?? "").trim();
+    return nextTitle || "Untitled";
+}
+
+function buildDocumentState(id: string, title: string | null | undefined, version: number | null | undefined): DocumentDetailState {
+    return {
+        id,
+        title: normalizeDocumentTitle(title),
+        version: version ?? 0,
+    };
+}
 
 /**
  * 문서 상세 화면의 상단 정보와 에디터 영역을 구성합니다.
@@ -26,13 +46,29 @@ function DocumentDetailView(): React.ReactElement {
 
     const dispatch = useAppDispatch();
 
-    const [docTitle, setDocTitle] = useState<string | null>(null);
+    const [documentState, setDocumentState] = useState<DocumentDetailState | null>(null);
+    const [titleDraft, setTitleDraft] = useState<string>("");
+    const [titleSaveState, setTitleSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+    const [titleError, setTitleError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(Boolean(id));
     const [error, setError] = useState<string | null>(null);
 
+    function syncDocumentLabel(documentId: string, title: string): void {
+        upsertCatalogItem({
+            id: documentId,
+            title,
+            accent: "#D7D7D7",
+            kind: "documents",
+        });
+        dispatch(layoutActions.renamePage({ pageId: documentId, title }));
+    }
+
     useEffect(() => {
         if (!id) {
-            setDocTitle(null);
+            setDocumentState(null);
+            setTitleDraft("");
+            setTitleSaveState("idle");
+            setTitleError(null);
             setLoading(false);
             setError("문서 ID가 없습니다.");
             return;
@@ -48,14 +84,12 @@ function DocumentDetailView(): React.ReactElement {
                 const response = await pagesApi.getPage(id);
                 if (cancelled) return;
 
-                const nextTitle = response.title?.trim() || "Untitled";
-                setDocTitle(nextTitle);
-                upsertCatalogItem({
-                    id: response.id,
-                    title: nextTitle,
-                    accent: "#D7D7D7",
-                    kind: "documents",
-                });
+                const nextDocument = buildDocumentState(response.id, response.title, response.version);
+                setDocumentState(nextDocument);
+                setTitleDraft(nextDocument.title);
+                setTitleSaveState("idle");
+                setTitleError(null);
+                syncDocumentLabel(nextDocument.id, nextDocument.title);
             } catch (loadError) {
                 if (cancelled) return;
 
@@ -77,6 +111,72 @@ function DocumentDetailView(): React.ReactElement {
         dispatch(layoutActions.recordRecent(id));
         dispatch(layoutActions.setLastLocation({ docId: id }));
     }, [dispatch, id]);
+
+    useEffect(() => {
+        if (titleSaveState !== "saved") return;
+
+        const timer = window.setTimeout(() => {
+            setTitleSaveState((current) => (current === "saved" ? "idle" : current));
+        }, 1800);
+
+        return () => window.clearTimeout(timer);
+    }, [titleSaveState]);
+
+    async function saveDocumentTitle(): Promise<void> {
+        if (!id || !documentState) return;
+        if (titleSaveState === "saving") return;
+
+        const nextTitle = normalizeDocumentTitle(titleDraft);
+        setTitleDraft(nextTitle);
+        setTitleError(null);
+
+        if (nextTitle === documentState.title) {
+            setTitleSaveState("saved");
+            return;
+        }
+
+        setTitleSaveState("saving");
+
+        const updateWithLatestVersion = async (): Promise<DocumentDetailState> => {
+            const latestPage = await pagesApi.getPage(id);
+            const latestDocument = buildDocumentState(id, latestPage.title, latestPage.version);
+
+            if (latestDocument.title === nextTitle) return latestDocument;
+
+            try {
+                const updatedPage = await pagesApi.updatePage(id, {
+                    title: nextTitle,
+                    version: latestDocument.version,
+                });
+                return buildDocumentState(id, updatedPage.title, updatedPage.version);
+            } catch (updateError) {
+                const httpError = updateError as HttpError;
+                if (httpError.status !== 409) throw updateError;
+
+                const retriedPage = await pagesApi.getPage(id);
+                const retriedDocument = buildDocumentState(id, retriedPage.title, retriedPage.version);
+
+                if (retriedDocument.title === nextTitle) return retriedDocument;
+
+                const updatedPage = await pagesApi.updatePage(id, {
+                    title: nextTitle,
+                    version: retriedDocument.version,
+                });
+                return buildDocumentState(id, updatedPage.title, updatedPage.version);
+            }
+        };
+
+        try {
+            const updatedDocument = await updateWithLatestVersion();
+            setDocumentState(updatedDocument);
+            setTitleDraft(updatedDocument.title);
+            setTitleSaveState("saved");
+            syncDocumentLabel(updatedDocument.id, updatedDocument.title);
+        } catch (saveError) {
+            setTitleSaveState("error");
+            setTitleError(saveError instanceof Error ? saveError.message : "제목을 저장하지 못했습니다.");
+        }
+    }
 
     if (!id) {
         return (
@@ -102,27 +202,15 @@ function DocumentDetailView(): React.ReactElement {
         );
     }
 
-    if (loading && !docTitle) {
+    if (loading && !documentState) {
         return (
-            <section className={styles.content}>
-                <div className={styles.headerRow}>
-                    <div className={styles.headerCopy}>
-                        <div className={styles.headerTitleGroup}>
-                            <div className={styles.pageEyebrow}>불러오는 중</div>
-                            <div className={styles.tab}>
-                                <h1 className={styles.tabIcon}>문서를 불러오는 중입니다.</h1>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className={`${styles.surfacePanel} ${styles.emptyState}`}>
-                    <div className={styles.statusRow}>GET /v1/documents/{id} 요청으로 상세 정보를 가져오는 중입니다.</div>
-                </div>
+            <section className={`${styles.content} ${styles.loadingState}`} aria-busy="true" aria-label="문서를 불러오는 중">
+                <div className={styles.loadingSpinner} aria-hidden="true" />
             </section>
         );
     }
 
-    if (error && !docTitle) {
+    if (error && !documentState) {
         return (
             <section className={styles.content}>
                 <div className={styles.headerRow}>
@@ -146,48 +234,51 @@ function DocumentDetailView(): React.ReactElement {
         );
     }
 
-    const doc = {
-        id,
-        title: docTitle ?? "Untitled",
-        kind: "documents" as const,
-        accent: "#D7D7D7",
-    };
-
+    const doc = documentState ?? buildDocumentState(id, "Untitled", 0);
     return (
         <section className={styles.content}>
-            <div className={styles.headerRow}>
-                <div className={styles.headerCopy}>
-                    <div className={styles.headerTitleGroup}>
-                        <div className={styles.pageEyebrow}>편집 중</div>
-                        <div className={styles.tab}>
-                            <h1 className={styles.tabIcon}>{doc.title}</h1>
+            <div className={styles.editorStage}>
+                <div className={styles.editorScrollContainer}>
+                    <div className={styles.editorCenterView}>
+                        <div className={styles.editorCanvas}>
+                            <div className={styles.titleShell}>
+                                <input
+                                    className={styles.titleInput}
+                                    value={titleDraft}
+                                    placeholder="Untitled"
+                                    aria-label="문서 제목"
+                                    readOnly={titleSaveState === "saving"}
+                                    onChange={(event) => {
+                                        setTitleDraft(event.target.value);
+                                        if (titleSaveState !== "idle") setTitleSaveState("idle");
+                                        if (titleError) setTitleError(null);
+                                    }}
+                                    onBlur={() => void saveDocumentTitle()}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter") {
+                                            event.preventDefault();
+                                            event.currentTarget.blur();
+                                        }
+                                        if (event.key === "Escape") {
+                                            event.preventDefault();
+                                            setTitleDraft(doc.title);
+                                            setTitleSaveState("idle");
+                                            setTitleError(null);
+                                            event.currentTarget.blur();
+                                        }
+                                    }}
+                                />
+                                {titleError ? <p className={styles.titleError}>{titleError}</p> : null}
+                            </div>
+
+                            <div className={styles.titleDivider} aria-hidden="true" />
+
+                            <div className={styles.editorBody}>
+                                <BlockEditor documentId={doc.id} />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div className={styles.headerMeta}>
-                <div className={styles.yearLabel}>문서 편집기</div>
-                <div className={styles.yearLabel}>저장 준비</div>
-            </div>
-
-            <div className={styles.infoGrid}>
-                <div className={styles.infoCard}>
-                    <span className={styles.infoLabel}>문서 ID</span>
-                    <p className={styles.infoValue}>{doc.id}</p>
-                </div>
-                <div className={styles.infoCard}>
-                    <span className={styles.infoLabel}>분류</span>
-                    <p className={styles.infoValue}>{doc.kind}</p>
-                </div>
-                <div className={styles.infoCard}>
-                    <span className={styles.infoLabel}>색상</span>
-                    <p className={styles.infoValue}>{doc.accent}</p>
-                </div>
-            </div>
-
-            <div className={`${styles.surfacePanel} ${styles.editorShell}`}>
-                <BlockEditor documentId={doc.id} />
             </div>
         </section>
     );

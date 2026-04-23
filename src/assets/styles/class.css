@@ -67,9 +67,9 @@
     --lnb-item-min-height: var(--control-height-xl);
     --lnb-icon-size: var(--size-24);
 
-    --gnb-padding: var(--space-0) var(--space-10) var(--space-14) var(--space-6);
+    --gnb-padding: var(--space-0) var(--space-8) var(--space-6) var(--space-4);
     --gnb-gap: var(--space-12);
-    --gnb-button-height: var(--control-height-lg);
+    --gnb-button-height: var(--control-height-md);
 
     --base-shadow:
         0 0.8rem 2.4rem rgba(var(--color-black-rgb), 0.08),
@@ -85,9 +85,9 @@
     --ele-border-radius: 8px;
 
     --header-max-width: 100rem;
-    --header-height: 8rem;
+    --header-height: 4rem;
     --header-padding: 0 3rem;
-    --header-offset: 7rem;
+    --header-offset: 4rem;
 
     --header-background: linear-gradient(
         to bottom,

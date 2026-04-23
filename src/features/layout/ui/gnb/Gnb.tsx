@@ -133,20 +133,6 @@ function Gnb({ profile }: GnbProps): React.ReactElement {
             <span className={styles.backIcon} aria-hidden="true">←</span>
           </Button>
         )}
-        {headerMode === "docText" && (
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              size="s"
-              className={`${styles.favoriteBtn} ${isPinned ? styles.active : ""}`}
-              onClick={onTogglePinned}
-              title={isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-            >
-              <Icon name="star" size={22} />
-            </Button>
-          </>
-        )}
       </div>
 
       <div className={styles.gnbRight}>
@@ -156,23 +142,34 @@ function Gnb({ profile }: GnbProps): React.ReactElement {
               type="button"
               variant="ghost"
               size="s"
-              className={`${styles.shareBtn} ${isShared ? styles.shareBtnActive : ""}`}
-              onClick={onToggleShare}
-              title={isShared ? "공유 해제" : "공유 활성화"}
-              aria-pressed={isShared}
+              className={`${styles.iconActionBtn} ${styles.favoriteBtn} ${isPinned ? styles.favoriteBtnActive : ""}`}
+              onClick={onTogglePinned}
+              title={isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+              aria-pressed={isPinned}
             >
-              <Icon name="share" source="url" basePath="/icons" size={14} />
+              <Icon name="star" size={22} />
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="s"
-              className={styles.trashBtn}
+              className={`${styles.iconActionBtn} ${styles.shareBtn} ${isShared ? styles.shareBtnActive : ""}`}
+              onClick={onToggleShare}
+              title={isShared ? "공유 해제" : "공유 활성화"}
+              aria-pressed={isShared}
+            >
+              <Icon name="share" source="url" basePath="/icons" size={19} />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="s"
+              className={`${styles.iconActionBtn} ${styles.trashBtn}`}
               onClick={onMoveToTrash}
               title="휴지통으로 이동"
               aria-label="휴지통으로 이동"
             >
-              <Icon name="trash" source="url" basePath="/icons" size={16} />
+              <Icon name="trash" source="url" basePath="/icons" size={19} />
             </Button>
           </>
         )}

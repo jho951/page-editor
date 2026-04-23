@@ -5,6 +5,8 @@
 export type ShortcutScope = "global" | "text";
 
 export type ShortcutCommand =
+  | "undo-edit"
+  | "redo-edit"
   | "new-page"
   | "save-page"
   | "open-search"

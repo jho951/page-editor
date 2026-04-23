@@ -8,6 +8,7 @@ interface ImportMetaEnv {
     readonly VITE_DOCUMENTS_API_BASE_URL?: string;
     readonly VITE_SITE_URL?: string;
     readonly VITE_START_FRONTEND_URL?: string;
+    readonly VITE_POST_AUTH_REDIRECT_URL?: string;
     readonly VITE_ENABLE_REMOTE_DOCS?: string;
 }
 

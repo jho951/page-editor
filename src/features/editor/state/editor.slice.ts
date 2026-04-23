@@ -43,6 +43,37 @@ interface EditorState {
   errorMessage: string | null;
   autosaveScheduledAt: number | null;
   loaded: boolean;
+  history: EditorHistoryState;
+}
+
+interface EditorHistoryBlockSnapshot {
+  id: string;
+  parentId: string | null;
+  orderKey: string;
+  content: EditorContent;
+}
+
+interface EditorHistorySnapshot {
+  blocks: EditorHistoryBlockSnapshot[];
+  selectedBlockId: string | null;
+}
+
+interface EditorHistoryEntry {
+  before: EditorHistorySnapshot;
+  after: EditorHistorySnapshot;
+  meta: EditorHistoryMeta;
+}
+
+interface EditorHistoryState {
+  undoStack: EditorHistoryEntry[];
+  redoStack: EditorHistoryEntry[];
+  isApplying: boolean;
+}
+
+interface EditorHistoryMeta {
+  kind: "text" | "change";
+  blockId?: string;
+  at: number;
 }
 
 /**
@@ -65,6 +96,11 @@ const initialState: EditorState = {
   errorMessage: null,
   autosaveScheduledAt: null,
   loaded: false,
+  history: {
+    undoStack: [],
+    redoStack: [],
+    isApplying: false,
+  },
 };
 
 // Server snapshots arrive as a flat block list. The client expands that into document metadata + tree indexes.
@@ -77,7 +113,7 @@ const initialState: EditorState = {
  */
 function snapshotToState(snapshot: EditorDocumentSnapshot): Pick<
   EditorState,
-  "document" | "blocks" | "selectedBlockId" | "queue" | "inFlight" | "saveState" | "errorMessage" | "loaded"
+  "document" | "blocks" | "selectedBlockId" | "queue" | "inFlight" | "saveState" | "errorMessage" | "loaded" | "history"
 > {
 
   const rootBlockId = snapshot.rootBlockId ?? `root-${snapshot.id}`;
@@ -186,6 +222,11 @@ function snapshotToState(snapshot: EditorDocumentSnapshot): Pick<
     saveState: shouldSeedInitialBlock ? "dirty" : "idle",
     errorMessage: null,
     loaded: true,
+    history: {
+      undoStack: [],
+      redoStack: [],
+      isApplying: false,
+    },
   };
 }
 
@@ -209,6 +250,109 @@ function currentDocument(state: EditorState): EditorDocumentState | null {
 
   const id = currentDocumentId(state);
   return id ? state.document.byId[id] ?? null : null;
+}
+
+const HISTORY_LIMIT = 100;
+const TEXT_HISTORY_BATCH_MS = 900;
+
+function cloneMark(mark: EditorMark): EditorMark {
+  return mark.type === "textColor" ? { ...mark } : { type: mark.type };
+}
+
+function cloneContent(content: EditorContent): EditorContent {
+  return {
+    ...content,
+    marks: content.marks.map(cloneMark),
+  };
+}
+
+function sameMark(a: EditorMark, b: EditorMark): boolean {
+  if (a.type !== b.type) return false;
+  if (a.type === "textColor" && b.type === "textColor") {
+    return a.value === b.value;
+  }
+  return true;
+}
+
+function contentEquals(a: EditorContent, b: EditorContent): boolean {
+  if (a.type !== b.type) return false;
+  if (a.text !== b.text) return false;
+  if (Boolean(a.checked) !== Boolean(b.checked)) return false;
+  if (a.marks.length !== b.marks.length) return false;
+  return a.marks.every((mark, index) => sameMark(mark, b.marks[index]));
+}
+
+function captureHistorySnapshot(state: EditorState): EditorHistorySnapshot | null {
+  const doc = currentDocument(state);
+  if (!doc) return null;
+
+  const childIds = state.blocks.childrenByParentId[doc.rootBlockId] ?? [];
+  return {
+    blocks: childIds
+      .map((blockId) => state.blocks.byId[blockId])
+      .filter((block): block is EditorBlockState => Boolean(block))
+      .map((block) => ({
+        id: block.id,
+        parentId: block.parentId,
+        orderKey: block.orderKey,
+        content: cloneContent(block.draft),
+      })),
+    selectedBlockId: state.selectedBlockId,
+  };
+}
+
+function historySnapshotEquals(a: EditorHistorySnapshot | null, b: EditorHistorySnapshot | null): boolean {
+  if (!a || !b) return a === b;
+  if (a.selectedBlockId !== b.selectedBlockId) return false;
+  if (a.blocks.length !== b.blocks.length) return false;
+
+  return a.blocks.every((block, index) => {
+    const other = b.blocks[index];
+    return (
+      block.id === other.id &&
+      block.parentId === other.parentId &&
+      block.orderKey === other.orderKey &&
+      contentEquals(block.content, other.content)
+    );
+  });
+}
+
+function pushHistoryEntry(
+  state: EditorState,
+  before: EditorHistorySnapshot | null,
+  after: EditorHistorySnapshot | null,
+  meta: Omit<EditorHistoryMeta, "at">,
+): void {
+  if (state.history.isApplying) return;
+  if (!before || !after) return;
+  if (historySnapshotEquals(before, after)) return;
+
+  const nextMeta: EditorHistoryMeta = {
+    ...meta,
+    at: Date.now(),
+  };
+  const lastEntry = state.history.undoStack.at(-1);
+
+  if (
+    nextMeta.kind === "text" &&
+    lastEntry?.meta.kind === "text" &&
+    lastEntry.meta.blockId === nextMeta.blockId &&
+    nextMeta.at - lastEntry.meta.at <= TEXT_HISTORY_BATCH_MS
+  ) {
+    state.history.undoStack = [
+      ...state.history.undoStack.slice(0, -1),
+      {
+        ...lastEntry,
+        after,
+        meta: nextMeta,
+      },
+    ];
+    state.history.redoStack = [];
+    return;
+  }
+
+  state.history.undoStack = [...state.history.undoStack, { before, after, meta: nextMeta }].slice(-HISTORY_LIMIT);
+  state.history.redoStack = [];
 }
 
 // Most current editor actions still work on one visible sibling list at a time.
@@ -479,10 +623,194 @@ function applyBlockIdMappings(state: EditorState, idMappings: Record<string, str
   }
 
   state.queue = buildPendingQueue(state.queue.ops.map((op) => remapOperationId(op, idMappings)));
+  remapHistoryStacks(state, idMappings);
+}
+
+function hydrateQueuedOperationVersions(state: EditorState): void {
+  state.queue = buildPendingQueue(
+    state.queue.ops.map((op) => {
+      if (op.type === "block.create" || typeof op.version === "number" || op.blockId.startsWith("tmp:block:")) {
+        return op;
+      }
+
+      const block = state.blocks.byId[op.blockId];
+      if (!block) return op;
+
+      return {
+        ...op,
+        version: block.version,
+      };
+    })
+  );
 }
 
 function transactionVersion(blockId: string, version: number): number | undefined {
   return blockId.startsWith("tmp:block:") ? undefined : version;
+}
+
+function remapHistorySnapshot(
+  snapshot: EditorHistorySnapshot,
+  idMappings: Record<string, string>,
+): EditorHistorySnapshot {
+  return {
+    blocks: snapshot.blocks.map((block) => ({
+      ...block,
+      id: idMappings[block.id] ?? block.id,
+      parentId: block.parentId ? (idMappings[block.parentId] ?? block.parentId) : null,
+      content: cloneContent(block.content),
+    })),
+    selectedBlockId: snapshot.selectedBlockId ? (idMappings[snapshot.selectedBlockId] ?? snapshot.selectedBlockId) : null,
+  };
+}
+
+function remapHistoryEntry(
+  entry: EditorHistoryEntry,
+  idMappings: Record<string, string>,
+): EditorHistoryEntry {
+  return {
+    before: remapHistorySnapshot(entry.before, idMappings),
+    after: remapHistorySnapshot(entry.after, idMappings),
+    meta: {
+      ...entry.meta,
+      blockId: entry.meta.blockId ? (idMappings[entry.meta.blockId] ?? entry.meta.blockId) : undefined,
+    },
+  };
+}
+
+function remapHistoryStacks(state: EditorState, idMappings: Record<string, string>): void {
+  const entries = Object.entries(idMappings);
+  if (entries.length === 0) return;
+
+  state.history.undoStack = state.history.undoStack.map((entry) => remapHistoryEntry(entry, idMappings));
+  state.history.redoStack = state.history.redoStack.map((entry) => remapHistoryEntry(entry, idMappings));
+}
+
+function createBlockFromHistory(
+  state: EditorState,
+  parentId: string,
+  blockSnapshot: EditorHistoryBlockSnapshot,
+  actualId: string,
+): void {
+  const content = cloneContent(blockSnapshot.content);
+  const order = state.blocks.childrenByParentId[parentId] ?? [];
+
+  state.blocks.byId[actualId] = {
+    id: actualId,
+    parentId,
+    orderKey: createOrderKey(order.length),
+    version: 0,
+    draft: content,
+    lastSynced: content,
+    status: "normal",
+  };
+  setCurrentBlockOrder(state, parentId, [...order, actualId]);
+
+  const { afterBlockId, beforeBlockId } = siblingContext(state, parentId, actualId);
+  enqueue(state, {
+    type: "block.create",
+    blockId: actualId,
+    parentId,
+    afterBlockId,
+    beforeBlockId,
+    orderKey: state.blocks.byId[actualId].orderKey,
+  });
+  enqueue(state, {
+    type: "block.replace_content",
+    blockId: actualId,
+    version: transactionVersion(actualId, state.blocks.byId[actualId].version),
+    content,
+  });
+}
+
+function deleteBlockFromHistory(state: EditorState, blockId: string): void {
+  const block = state.blocks.byId[blockId];
+  if (!block) return;
+
+  if (block.parentId) {
+    const order = state.blocks.childrenByParentId[block.parentId] ?? [];
+    setCurrentBlockOrder(state, block.parentId, order.filter((candidateId) => candidateId !== blockId));
+  }
+
+  removeSubtreeFromState(state, blockId);
+  enqueue(state, {
+    type: "block.delete",
+    blockId,
+    version: transactionVersion(blockId, block.version),
+  });
+}
+
+function reorderChildrenFromHistory(state: EditorState, parentId: string, nextOrder: string[]): void {
+  const currentOrder = state.blocks.childrenByParentId[parentId] ?? [];
+  if (
+    currentOrder.length === nextOrder.length &&
+    currentOrder.every((blockId, index) => blockId === nextOrder[index])
+  ) {
+    return;
+  }
+
+  setCurrentBlockOrder(state, parentId, nextOrder);
+  nextOrder.forEach((blockId) => {
+    const block = state.blocks.byId[blockId];
+    if (!block) return;
+
+    const { afterBlockId, beforeBlockId } = siblingContext(state, parentId, blockId);
+    enqueue(state, {
+      type: "block.move",
+      blockId,
+      version: transactionVersion(blockId, block.version),
+      parentId,
+      afterBlockId,
+      beforeBlockId,
+      orderKey: block.orderKey,
+    });
+  });
+}
+
+function applyHistorySnapshot(state: EditorState, snapshot: EditorHistorySnapshot): Record<string, string> {
+  const doc = currentDocument(state);
+  if (!doc) return {};
+
+  const parentId = doc.rootBlockId;
+  const idMappings: Record<string, string> = {};
+
+  snapshot.blocks.forEach((blockSnapshot) => {
+    const actualId = state.blocks.byId[blockSnapshot.id] ? blockSnapshot.id : `tmp:block:${generateId()}`;
+    if (state.blocks.byId[blockSnapshot.id]) return;
+
+    idMappings[blockSnapshot.id] = actualId;
+    createBlockFromHistory(state, parentId, blockSnapshot, actualId);
+  });
+
+  const targetOrder = snapshot.blocks.map((blockSnapshot) => idMappings[blockSnapshot.id] ?? blockSnapshot.id);
+  const targetSet = new Set(targetOrder);
+  const currentOrder = [...(state.blocks.childrenByParentId[parentId] ?? [])];
+
+  currentOrder.forEach((blockId) => {
+    if (!targetSet.has(blockId)) {
+      deleteBlockFromHistory(state, blockId);
+    }
+  });
+
+  snapshot.blocks.forEach((blockSnapshot) => {
+    const actualId = idMappings[blockSnapshot.id] ?? blockSnapshot.id;
+    const block = state.blocks.byId[actualId];
+    if (!block) return;
+
+    const nextContent = cloneContent(blockSnapshot.content);
+    if (!contentEquals(block.draft, nextContent)) {
+      markBlockDirty(state, actualId, nextContent);
+    }
+  });
+
+  const visibleTargetOrder = targetOrder.filter((blockId) => Boolean(state.blocks.byId[blockId]));
+  reorderChildrenFromHistory(state, parentId, visibleTargetOrder);
+
+  const selectedBlockId = snapshot.selectedBlockId ? (idMappings[snapshot.selectedBlockId] ?? snapshot.selectedBlockId) : null;
+  state.selectedBlockId = selectedBlockId && state.blocks.byId[selectedBlockId]
+    ? selectedBlockId
+    : visibleTargetOrder[0] ?? null;
+
+  return idMappings;
 }
 
 function resolveParentBlockRef(state: EditorState, parentId: string | null | undefined): string | null {
@@ -686,15 +1014,45 @@ const editorSlice = createSlice({
     setSelectedBlock(state, action: PayloadAction<string | null>) {
       state.selectedBlockId = action.payload;
     },
+    undo(state) {
+      const entry = state.history.undoStack.at(-1);
+      if (!entry) return;
+
+      state.history.undoStack = state.history.undoStack.slice(0, -1);
+      state.history.isApplying = true;
+
+      const idMappings = applyHistorySnapshot(state, entry.before);
+      remapHistoryStacks(state, idMappings);
+      state.history.redoStack = [...state.history.redoStack, remapHistoryEntry(entry, idMappings)].slice(-HISTORY_LIMIT);
+      state.history.isApplying = false;
+    },
+    redo(state) {
+      const entry = state.history.redoStack.at(-1);
+      if (!entry) return;
+
+      state.history.redoStack = state.history.redoStack.slice(0, -1);
+      state.history.isApplying = true;
+
+      const idMappings = applyHistorySnapshot(state, entry.after);
+      remapHistoryStacks(state, idMappings);
+      state.history.undoStack = [...state.history.undoStack, remapHistoryEntry(entry, idMappings)].slice(-HISTORY_LIMIT);
+      state.history.isApplying = false;
+    },
     updateBlockText(state, action: PayloadAction<{ blockId: string; text: string }>) {
+      const before = captureHistorySnapshot(state);
 
       const block = state.blocks.byId[action.payload.blockId];
       if (!block) return;
 
       const next = { ...block.draft, text: action.payload.text };
       markBlockDirty(state, action.payload.blockId, next);
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), {
+        kind: "text",
+        blockId: action.payload.blockId,
+      });
     },
     toggleBlockMark(state, action: PayloadAction<{ blockId: string; markType: "bold" | "italic" | "underline" | "strikethrough" }>) {
+      const before = captureHistorySnapshot(state);
 
       const block = state.blocks.byId[action.payload.blockId];
       if (!block) return;
@@ -704,8 +1062,10 @@ const editorSlice = createSlice({
         marks: toggleMark(block.draft.marks, action.payload.markType),
       };
       markBlockDirty(state, action.payload.blockId, next);
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     setBlockTextColor(state, action: PayloadAction<{ blockId: string; value: string | null }>) {
+      const before = captureHistorySnapshot(state);
 
       const block = state.blocks.byId[action.payload.blockId];
       if (!block) return;
@@ -715,8 +1075,10 @@ const editorSlice = createSlice({
         marks: setTextColorMark(block.draft.marks, action.payload.value),
       };
       markBlockDirty(state, action.payload.blockId, next);
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     setBlockType(state, action: PayloadAction<{ blockId: string; type: EditorContent["type"] }>) {
+      const before = captureHistorySnapshot(state);
 
       const block = state.blocks.byId[action.payload.blockId];
       if (!block) return;
@@ -727,8 +1089,10 @@ const editorSlice = createSlice({
         checked: action.payload.type === "to_do" ? Boolean(block.draft.checked) : false,
       };
       markBlockDirty(state, action.payload.blockId, next);
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     toggleTodoChecked(state, action: PayloadAction<{ blockId: string }>) {
+      const before = captureHistorySnapshot(state);
 
       const block = state.blocks.byId[action.payload.blockId];
       if (!block) return;
@@ -736,12 +1100,20 @@ const editorSlice = createSlice({
 
       const next = { ...block.draft, checked: !block.draft.checked };
       markBlockDirty(state, action.payload.blockId, next);
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     insertBlockAfter(state, action: PayloadAction<{ afterBlockId: string | null }>) {
+      const before = captureHistorySnapshot(state);
 
+      const anchorBlock = action.payload.afterBlockId
+        ? state.blocks.byId[action.payload.afterBlockId] ?? null
+        : null;
+
+      const parentId = anchorBlock?.parentId ?? selectedParentId(state);
+      if (!parentId) return;
+
+      const order = state.blocks.childrenByParentId[parentId] ?? [];
       const id = `tmp:block:${generateId()}`;
-
-      const parentId = selectedParentId(state);
       const block: EditorBlockState = {
         id,
         parentId,
@@ -753,8 +1125,6 @@ const editorSlice = createSlice({
       };
 
       state.blocks.byId[id] = block;
-
-      const order = currentBlockOrder(state);
 
       const afterIndex = action.payload.afterBlockId
         ? order.indexOf(action.payload.afterBlockId)
@@ -782,8 +1152,86 @@ const editorSlice = createSlice({
         beforeBlockId,
         orderKey: block.orderKey,
       });
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
+    },
+    splitBlockAtSelection(
+      state,
+      action: PayloadAction<{ blockId: string; sourceText?: string; selectionStart: number; selectionEnd: number }>
+    ) {
+      const before = captureHistorySnapshot(state);
+
+      const current = state.blocks.byId[action.payload.blockId];
+      if (!current || !current.parentId) return;
+
+      const sourceText = action.payload.sourceText ?? current.draft.text ?? "";
+      const selectionStart = Math.max(0, Math.min(action.payload.selectionStart, sourceText.length));
+      const selectionEnd = Math.max(selectionStart, Math.min(action.payload.selectionEnd, sourceText.length));
+      const beforeText = sourceText.slice(0, selectionStart);
+      const afterText = sourceText.slice(selectionEnd);
+
+      const nextId = `tmp:block:${generateId()}`;
+      const nextContent: EditorContent =
+        afterText.length > 0
+          ? {
+              ...current.draft,
+              text: afterText,
+            }
+          : {
+              type: "paragraph",
+              text: "",
+              checked: false,
+              marks: [],
+            };
+
+      state.blocks.byId[nextId] = {
+        id: nextId,
+        parentId: current.parentId,
+        orderKey: createOrderKey(0),
+        version: 0,
+        draft: nextContent,
+        lastSynced: nextContent,
+        status: "normal",
+      };
+
+      const order = state.blocks.childrenByParentId[current.parentId] ?? [];
+      const currentIndex = order.indexOf(current.id);
+      const insertAt = currentIndex >= 0 ? currentIndex + 1 : order.length;
+      const nextOrder = [...order];
+      nextOrder.splice(insertAt, 0, nextId);
+      setCurrentBlockOrder(state, current.parentId, nextOrder);
+
+      if (beforeText !== sourceText || selectionEnd !== selectionStart) {
+        markBlockDirty(state, current.id, {
+          ...current.draft,
+          text: beforeText,
+        });
+      }
+
+      state.selectedBlockId = nextId;
+
+      const { afterBlockId, beforeBlockId } = siblingContext(state, current.parentId, nextId);
+
+      enqueue(state, {
+        type: "block.create",
+        blockId: nextId,
+        parentId: current.parentId,
+        afterBlockId,
+        beforeBlockId,
+        orderKey: state.blocks.byId[nextId].orderKey,
+      });
+
+      if (afterText.length > 0) {
+        enqueue(state, {
+          type: "block.replace_content",
+          blockId: nextId,
+          version: transactionVersion(nextId, state.blocks.byId[nextId].version),
+          content: nextContent,
+        });
+      }
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     duplicateSelectedBlock(state) {
+      const before = captureHistorySnapshot(state);
 
       const current = selectedBlock(state);
       if (!current) return;
@@ -831,26 +1279,37 @@ const editorSlice = createSlice({
         version: transactionVersion(nextId, state.blocks.byId[nextId].version),
         content: { ...current.draft },
       });
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     deleteSelectedBlock(state) {
+      const before = captureHistorySnapshot(state);
 
       const current = selectedBlock(state);
       if (!current) return;
 
-      const nextOrder = currentBlockOrder(state).filter((blockId) => blockId !== current.id);
+      const order = currentBlockOrder(state);
+      const currentIndex = order.indexOf(current.id);
+      const nextOrder = order.filter((blockId) => blockId !== current.id);
       if (current.parentId) {
         setCurrentBlockOrder(state, current.parentId, nextOrder);
       }
       removeSubtreeFromState(state, current.id);
-      state.selectedBlockId = nextOrder[0] ?? null;
+      if (nextOrder.length === 0) {
+        state.selectedBlockId = null;
+      } else {
+        const fallbackIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+        state.selectedBlockId = nextOrder[fallbackIndex] ?? nextOrder[0] ?? null;
+      }
 
       enqueue(state, {
         type: "block.delete",
         blockId: current.id,
         version: transactionVersion(current.id, current.version),
       });
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     moveSelectedBlock(state, action: PayloadAction<"up" | "down">) {
+      const before = captureHistorySnapshot(state);
 
       const current = selectedBlock(state);
       if (!current) return;
@@ -884,6 +1343,50 @@ const editorSlice = createSlice({
         beforeBlockId,
         orderKey: current.orderKey,
       });
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
+    },
+    moveBlockByDrop(
+      state,
+      action: PayloadAction<{ blockId: string; targetBlockId: string; placement: "before" | "after" }>
+    ) {
+      const before = captureHistorySnapshot(state);
+
+      const current = state.blocks.byId[action.payload.blockId];
+      const target = state.blocks.byId[action.payload.targetBlockId];
+      if (!current || !target) return;
+      if (current.id === target.id) return;
+      if (!current.parentId || current.parentId !== target.parentId) return;
+
+      const order = state.blocks.childrenByParentId[current.parentId] ?? [];
+      const currentIndex = order.indexOf(current.id);
+      const targetIndex = order.indexOf(target.id);
+      if (currentIndex < 0 || targetIndex < 0) return;
+
+      const nextOrder = [...order];
+      nextOrder.splice(currentIndex, 1);
+
+      const targetIndexAfterRemoval = nextOrder.indexOf(target.id);
+      const insertAt = action.payload.placement === "before" ? targetIndexAfterRemoval : targetIndexAfterRemoval + 1;
+      nextOrder.splice(insertAt, 0, current.id);
+
+      const nextIndex = nextOrder.indexOf(current.id);
+      if (nextIndex === currentIndex) return;
+
+      setCurrentBlockOrder(state, current.parentId, nextOrder);
+      state.selectedBlockId = current.id;
+
+      const { afterBlockId, beforeBlockId } = siblingContext(state, current.parentId, current.id);
+
+      enqueue(state, {
+        type: "block.move",
+        blockId: current.id,
+        version: transactionVersion(current.id, current.version),
+        parentId: current.parentId,
+        afterBlockId,
+        beforeBlockId,
+        orderKey: current.orderKey,
+      });
+      pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     setAutosaveScheduledAt(state, action: PayloadAction<number | null>) {
       state.autosaveScheduledAt = action.payload;
@@ -934,6 +1437,15 @@ const editorSlice = createSlice({
       }
     },
     consumeShortcutCommand(state, action: PayloadAction<{ command: string }>) {
+      if (action.payload.command === "undo-edit") {
+        editorSlice.caseReducers.undo(state);
+        return;
+      }
+
+      if (action.payload.command === "redo-edit") {
+        editorSlice.caseReducers.redo(state);
+        return;
+      }
 
       const block = selectedBlock(state);
       if (!block) return;
@@ -1039,6 +1551,8 @@ const editorSlice = createSlice({
       if (doc && typeof action.payload.response.documentVersion === "number") {
         doc.version = action.payload.response.documentVersion;
       }
+
+      hydrateQueuedOperationVersions(state);
 
       state.inFlight = null;
       state.saveState = state.queue.ops.length > 0 ? "dirty" : "saved";

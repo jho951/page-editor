@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import {
+    buildPostAuthSuccessUrl,
     buildSsoStartUrl,
     consumePostLoginRedirect,
     exchangeAuthTicket,
@@ -61,7 +62,12 @@ function AuthCallbackView(): React.ReactElement {
 
     useEffect(() => {
         if (!isAuthenticated) return;
-        navigate(nextPath, { replace: true });
+        const successRedirectUrl = buildPostAuthSuccessUrl(nextPath);
+        if (/^https?:\/\//.test(successRedirectUrl)) {
+            window.location.replace(successRedirectUrl);
+            return;
+        }
+        navigate(successRedirectUrl, { replace: true });
     }, [isAuthenticated, navigate, nextPath]);
 
     if (authError) {

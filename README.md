@@ -7,7 +7,9 @@ npm install
 npm run dev
 ```
 
-기본 개발 서버 주소: `http://localhost:5173`
+기본 개발 서버 주소: `http://localhost:5174`
+로그인 시작 프론트 기본값: `http://localhost:3000`
+인증 완료 후 최종 이동 기본값: `http://localhost:5174`
 
 ## Docker 실행
 
@@ -17,7 +19,7 @@ npm run dev
 ./scripts/run.docker.sh dev up
 ```
 
-- 주소: `http://localhost:5173`
+- 주소: `http://localhost:5174`
 - 컨테이너 내부 Vite 프록시 `/v1`, `/auth` 대상: `http://host.docker.internal:8080`
 - `editor` 서비스에 dev compose 오버레이(`docker/docker-compose.dev.yml`)를 적용해 실행
 - `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh dev logs`로 확인
@@ -105,11 +107,12 @@ npm run dev
 ## 인증 흐름
 
 ```text
-5173/signin
+3000/signin
 -> 8080/v1/auth/sso/start
 -> GitHub
 -> 8080/v1/login/oauth2/code/github
--> 5173/auth/callback
+-> 5174/auth/callback
+-> 5174
 ```
 
 프론트는 아래 규칙을 따릅니다.

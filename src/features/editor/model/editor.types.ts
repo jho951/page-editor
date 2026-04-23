@@ -99,6 +99,7 @@ export type GatewayEditorOperationType =
 export interface EditorRichTextContent {
   format: "rich_text";
   schemaVersion: 1;
+  blockType?: "paragraph" | "heading1" | "heading2" | "heading3";
   segments: Array<{
     text: string;
     marks: EditorMark[];

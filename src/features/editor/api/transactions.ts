@@ -42,7 +42,7 @@ type RichTextMark = EditorMark;
 type RichTextContent = EditorRichTextContent;
 
 function includeVersion(version: number | undefined): { version?: number } {
-  return typeof version === "number" && version > 0 ? { version } : {};
+  return typeof version === "number" && version >= 0 ? { version } : {};
 }
 
 function toGatewayParentRef(parentId: string | null | undefined): string | null {
@@ -70,9 +70,14 @@ type RemoteTransactionResponse = DocumentTransactionResponse & {
 };
 
 function toRichTextContent(content: EditorContent): RichTextContent {
+  const blockType = content.type === "heading1" || content.type === "heading2" || content.type === "heading3"
+    ? content.type
+    : undefined;
+
   return {
     format: "rich_text",
     schemaVersion: 1,
+    ...(blockType ? { blockType } : {}),
     segments: [
       {
         text: content.text,
@@ -223,9 +228,13 @@ function fromRichTextContent(content: RichTextContent): EditorContent {
   const firstSegment = Array.isArray(content.segments) && content.segments.length > 0
     ? content.segments[0]
     : { text: "", marks: [] };
+  const blockType = content.blockType;
+  const type = blockType === "heading1" || blockType === "heading2" || blockType === "heading3"
+    ? blockType
+    : "paragraph";
 
   return {
-    type: "paragraph",
+    type,
     text: typeof firstSegment.text === "string" ? firstSegment.text : "",
     checked: false,
     marks: normalizeMarks(firstSegment.marks),

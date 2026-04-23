@@ -72,6 +72,7 @@ function ShortcutProvider({ children }: ProvidersProps): React.ReactElement {
             const target = e.target instanceof Element ? e.target : null;
 
             const typing = isTypingTarget(target);
+            if (typing && combo === "Enter") return;
 
             const binding = findBinding(bindings, combo, scope);
             if (combo === "Mod+S" || combo === "Ctrl+S" || combo === "Meta+S") {

@@ -48,6 +48,7 @@ export type RichTextMark =
 export type RichTextContent = {
   format?: "rich_text";
   schemaVersion?: 1;
+  blockType?: "paragraph" | "heading1" | "heading2" | "heading3";
   segments?: Array<{
     text?: string;
     marks?: RichTextMark[];

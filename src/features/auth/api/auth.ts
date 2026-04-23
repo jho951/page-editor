@@ -21,10 +21,20 @@ export type AuthUser = {
  * @returns 시작 프론트엔드 기본 URL을 반환합니다.
  */
 function getStartFrontendUrl(): string {
-  if (typeof import.meta === "undefined") return "http://localhost:5173";
+  if (typeof import.meta === "undefined") return "http://localhost:3000";
 
   const env = (import.meta as unknown as { env?: { VITE_START_FRONTEND_URL?: string } }).env;
-  return env?.VITE_START_FRONTEND_URL ?? "http://localhost:5173";
+  return env?.VITE_START_FRONTEND_URL ?? "http://localhost:3000";
+}
+
+function getPostAuthRedirectUrl(): string | null {
+  try {
+    const env = (import.meta as unknown as { env?: { VITE_POST_AUTH_REDIRECT_URL?: string } }).env;
+    const redirectUrl = env?.VITE_POST_AUTH_REDIRECT_URL;
+    return redirectUrl ? new URL(redirectUrl).toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -234,6 +244,23 @@ export { normalizeNextPath, readNextFromSearchParams };
 export function buildStartFrontendRootUrl(): string {
   const url = new URL("/", getStartFrontendUrl());
   return url.toString();
+}
+
+/**
+ * 인증 콜백 성공 후 최종 이동할 URL을 계산합니다.
+ *
+ * @param nextPath 로그인 후 돌아갈 경로 문자열입니다.
+ * @returns 절대 URL 또는 same-origin 경로를 반환합니다.
+ */
+export function buildPostAuthSuccessUrl(nextPath: string): string {
+  const normalizedNext = normalizeNextPath(nextPath);
+  const redirectBaseUrl = getPostAuthRedirectUrl();
+
+  if (!redirectBaseUrl) {
+    return normalizedNext;
+  }
+
+  return new URL(normalizedNext, redirectBaseUrl).toString();
 }
 
 /**

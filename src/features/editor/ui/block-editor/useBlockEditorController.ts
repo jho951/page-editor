@@ -31,15 +31,12 @@ const AUTOSAVE_MS = 2000;
  * BLOCK SHORTCUT COMMANDS 상수입니다.
  */
 const BLOCK_SHORTCUT_COMMANDS = new Set([
+  "undo-edit",
+  "redo-edit",
   "turn-into-text",
   "turn-into-heading-1",
   "turn-into-heading-2",
   "turn-into-heading-3",
-  "turn-into-bulleted-list",
-  "turn-into-numbered-list",
-  "turn-into-to-do",
-  "turn-into-toggle-list",
-  "turn-into-code-block",
   "duplicate-block",
   "move-block-up",
   "move-block-down",

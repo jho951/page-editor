@@ -89,6 +89,17 @@ function hasPageId(nodes: FolderItem[], pageId: string): boolean {
     return false;
 }
 
+function renamePageLabelById(nodes: FolderItem[], pageId: string, title: string): boolean {
+    for (const n of nodes) {
+        if (n.id === pageId || n.docId === pageId || n.key === (`folder:${pageId}` as LnbActiveKey)) {
+            n.label = title;
+            return true;
+        }
+        if (n.children?.length && renamePageLabelById(n.children, pageId, title)) return true;
+    }
+    return false;
+}
+
 function toFolderNode(item: ListDocumentsItem): FolderItem | null {
     const id = item.id == null ? "" : String(item.id);
     if (!id) return null;
@@ -257,6 +268,17 @@ const layoutSlice = createSlice({
             addChildById(state.folders, parentId, child);
 
             state.openFolderIds[parentId] = true;
+        },
+
+        renamePage(
+            state,
+            action: PayloadAction<{ pageId: string; title: string }>
+        ) {
+            const { pageId, title } = action.payload;
+            if (!pageId) return;
+
+            renamePageLabelById(state.folders, pageId, title);
+            state.trashItems = state.trashItems.map((item) => (item.id === pageId ? { ...item, label: title } : item));
         },
 
         movePageToTrash(state, action: PayloadAction<{ pageId: string }>) {
