@@ -36,6 +36,7 @@ interface EditorState {
   document: EditorDocumentsState;
   blocks: EditorBlocksState;
   selectedBlockId: string | null;
+  lastTextColor: string | null;
   queue: PendingQueue;
   inFlight: InFlightBatch | null;
   saveState: SaveState;
@@ -89,6 +90,7 @@ const initialState: EditorState = {
     childrenByParentId: {},
   },
   selectedBlockId: null,
+  lastTextColor: "#2563EB",
   queue: { ops: [], byBlockId: {} },
   inFlight: null,
   saveState: "idle",
@@ -1075,6 +1077,9 @@ const editorSlice = createSlice({
         marks: setTextColorMark(block.draft.marks, action.payload.value),
       };
       markBlockDirty(state, action.payload.blockId, next);
+      if (action.payload.value) {
+        state.lastTextColor = action.payload.value;
+      }
       pushHistoryEntry(state, before, captureHistorySnapshot(state), { kind: "change" });
     },
     setBlockType(state, action: PayloadAction<{ blockId: string; type: EditorContent["type"] }>) {
@@ -1489,6 +1494,15 @@ const editorSlice = createSlice({
           break;
         case "format-strikethrough":
           editorSlice.caseReducers.toggleBlockMark(state, { type: action.type, payload: { blockId: block.id, markType: "strikethrough" } });
+          break;
+        case "apply-last-color":
+          editorSlice.caseReducers.setBlockTextColor(state, {
+            type: action.type,
+            payload: {
+              blockId: block.id,
+              value: state.lastTextColor ?? "#2563EB",
+            },
+          });
           break;
         case "duplicate-block":
           editorSlice.caseReducers.duplicateSelectedBlock(state);

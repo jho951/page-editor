@@ -15,4 +15,13 @@ export interface FolderNodeProps {
     onNavigate?: (key: LnbActiveKey) => void;
     onAddChild?: (parentId: string) => void;
     onMoveToTrash?: (pageId: string) => void;
+    draggingPageId?: string | null;
+    dropHint?: {
+        targetId: string;
+        placement: "before" | "after" | "inside";
+    } | null;
+    onDragStartPage?: (pageId: string) => void;
+    onDragEndPage?: () => void;
+    onDragOverPage?: (event: React.DragEvent<HTMLDivElement>, node: FolderItem, level: number) => void;
+    onDropPage?: (event: React.DragEvent<HTMLDivElement>, node: FolderItem) => void;
 }

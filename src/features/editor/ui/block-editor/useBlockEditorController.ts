@@ -44,7 +44,24 @@ const BLOCK_SHORTCUT_COMMANDS = new Set([
   "format-italic",
   "format-underline",
   "format-strikethrough",
+  "apply-last-color",
 ]);
+
+const EDITOR_SHORTCUT_COMMANDS = new Set([
+  ...BLOCK_SHORTCUT_COMMANDS,
+  "select-current-block",
+  "clear-block-selection",
+  "edit-selected-block",
+  "open-block-menu",
+  "modify-current-block",
+]);
+
+function isEditorShortcutTarget(): boolean {
+  if (typeof document === "undefined") return false;
+
+  const activeElement = document.activeElement;
+  return activeElement instanceof HTMLElement && activeElement.dataset.editorBlockInput === "true";
+}
 
 /**
  * 저장 상태를 사용자용 문구로 변환합니다.
@@ -131,13 +148,7 @@ export function useBlockEditorController(documentId: string) {
   useEffect(() => {
     if (!pendingShortcut) return;
 
-    if (pendingShortcut.command === "save-page") {
-      console.log("[EDITOR][save-page]", {
-        shortcutId: pendingShortcut.id,
-        command: pendingShortcut.command,
-        saveState: saveStateRef.current,
-      });
-      requestSave(true);
+    if (EDITOR_SHORTCUT_COMMANDS.has(pendingShortcut.command) && !isEditorShortcutTarget()) {
       dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
       return;
     }

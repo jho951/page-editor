@@ -31,7 +31,6 @@ export const initialState: LayoutState = {
     sidebarCollapsed: false,
     openFolderIds: {
         my: true,
-        pinned: true,
         sharedRoot: true,
     },
     folders: DEFAULT_FOLDER,

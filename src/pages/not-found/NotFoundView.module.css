@@ -1,4 +1,4 @@
-.wrapper {
+.notFoundContainer {
     width: 100%;
     min-height: 100vh;
     position: relative;
@@ -6,23 +6,72 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: var(--header-offset) 0;
     color: rgba(var(--color-text-rgb), 0.5);
     text-align: center;
-    gap: var(--base-gap);
+    gap: clamp(20px, 1.8vw, 40px);
+}
+
+.notFoundTitle {
+    margin: 0;
+    font-size: clamp(28px, 4.2vw, 48px);
+    line-height: 1.08;
+}
+
+.notFoundTileWrapper {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    pointer-events: auto;
 }
 
 .homeLink {
     position: relative;
     color: var(--color-white);
-    font-weight: bold;
+    font-weight: 600;
     background-color: var(--color-primary);
     border-radius: var(--base-radius);
-    padding: 16px 24px;
+    padding: 14px 22px;
     z-index: var(--base-z-index);
     cursor: pointer;
     transition: 0.3s;
 }
 
 .homeLink:hover {
-    transform: translateY(-1px);
+    scale: 1.05;
+}
+
+.svg {
+    width: min(100%, 760px);
+    height: auto;
+    display: block;
+    pointer-events: auto;
+}
+
+.tile {
+    fill: var(--color-border);
+    transition:
+        fill 0.8s ease,
+        stroke 0.8s ease,
+        transform 0.5s ease;
+    transform-origin: center;
+}
+
+.active {
+    fill: var(--color-primary);
+    pointer-events: none;
+}
+
+.inactive:hover {
+    transition:
+        fill 0s,
+        stroke 0s,
+        transform 0.1s ease-out;
+    fill: var(--hover-color);
+    stroke: var(--hover-color);
+    stroke-width: 2px;
+    transform: scale(1.05);
+    cursor: pointer;
 }

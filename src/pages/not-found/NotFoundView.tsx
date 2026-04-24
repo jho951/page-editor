@@ -5,6 +5,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+import { NotFoundTiles } from "./NotFoundTiles.tsx";
 import styles from "./NotFoundView.module.css";
 
 /**
@@ -13,12 +14,13 @@ import styles from "./NotFoundView.module.css";
  */
 function NotFoundView(): React.ReactElement {
     return (
-        <main className={styles.wrapper}>
-            <p>404</p>
-            <h1>페이지를 찾을 수 없습니다.</h1>
-            <p>주소가 바뀌었거나 더 이상 제공되지 않는 화면입니다.</p>
+        <main className={styles.notFoundContainer} data-page-kind="not-found">
+            <h1 className={styles.notFoundTitle}>페이지를 찾을 수 없습니다.</h1>
+            <section className={styles.notFoundTileWrapper}>
+                <NotFoundTiles />
+            </section>
             <Link to="/" className={styles.homeLink}>
-                홈으로 이동
+                홈으로 돌아가기
             </Link>
         </main>
     );

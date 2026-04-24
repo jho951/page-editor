@@ -5,12 +5,13 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import type { LnbActiveKey, FolderItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 import { initialState, type OpenFolderMap } from "@features/layout/state/layout.initial.ts";
+import { uiActions } from "@app/state/ui.slice.ts";
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
 import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
 import type { ApiEnvelope, TrashDocumentResponse } from "@shared/api/service-contract.ts";
 import { pagesApi, type ListDocumentsItem } from "@features/layout/api/pages.ts";
-import { upsertCatalogItem } from "@features/document/index.ts";
+import { findDocById, upsertCatalogItem } from "@features/document/index.ts";
 import type { TrashItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 
 /**
@@ -260,7 +261,7 @@ const layoutSlice = createSlice({
 
             const child: FolderItem = {
                 id: childId,
-                label: title ?? "새 페이지",
+                label: title ?? "새 문서",
                 key: `folder:${childId}`,
                 docId: childId,
             };
@@ -326,7 +327,7 @@ const layoutSlice = createSlice({
             if (!inserted) {
                 state.folders = [
                     ...state.folders,
-                    { id: "my", label: "개인 페이지", icon: "folder", children: [restored] },
+                    { id: "my", label: "모든 문서", icon: "allDocs", children: [restored] },
                 ];
             }
 
@@ -391,8 +392,8 @@ const layoutSlice = createSlice({
             state.folders = [
                 {
                     id: "my",
-                    label: "개인 페이지",
-                    icon: "folder",
+                    label: "모든 문서",
+                    icon: "allDocs",
                     children: nextChildren,
                 },
                 ...state.folders,
@@ -421,7 +422,7 @@ export const createChildPage = createAsyncThunk<
   try {
     const response = await pagesApi.createPage({
       parentId,
-      title: "새 페이지",
+      title: "새 문서",
     });
 
     const documentId = response.id;
@@ -433,7 +434,7 @@ export const createChildPage = createAsyncThunk<
       layoutActions.addChildPage({
         parentId,
         childId: documentId,
-        title: response.title ?? "새 페이지",
+        title: response.title ?? "새 문서",
       })
     );
 
@@ -441,9 +442,10 @@ export const createChildPage = createAsyncThunk<
 
     upsertCatalogItem({
       id: documentId,
-      title: response.title ?? "새 페이지",
+      title: response.title ?? "새 문서",
       accent: "#D7D7D7",
       kind: "documents",
+      createdAt: response.createdAt ?? findDocById(documentId)?.createdAt,
     });
 
     return { documentId, key: (`folder:${documentId}`) as LnbActiveKey };
@@ -499,9 +501,10 @@ export const movePageToTrashRemote = createAsyncThunk<
   { pageId: string },
   { rejectValue: string }
 >("layout/movePageToTrashRemote", async ({ pageId }, { dispatch, rejectWithValue }) => {
-  dispatch(layoutActions.movePageToTrash({ pageId }));
   try {
     await pagesApi.moveToTrash(pageId);
+    dispatch(layoutActions.movePageToTrash({ pageId }));
+    dispatch(uiActions.showToast({ message: "삭제되었습니다.", duration: 3000 }));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "move to trash failed";
     return rejectWithValue(msg);
@@ -517,9 +520,10 @@ export const restorePageFromTrashRemote = createAsyncThunk<
   { pageId: string },
   { rejectValue: string }
 >("layout/restorePageFromTrashRemote", async ({ pageId }, { dispatch, rejectWithValue }) => {
-  dispatch(layoutActions.restorePageFromTrash({ pageId }));
   try {
     await pagesApi.restoreFromTrash(pageId);
+    dispatch(layoutActions.restorePageFromTrash({ pageId }));
+    void dispatch(fetchLnbDocuments());
   } catch (e) {
     const msg = e instanceof Error ? e.message : "restore page failed";
     return rejectWithValue(msg);
@@ -535,9 +539,9 @@ export const permanentDeletePageRemote = createAsyncThunk<
   { pageId: string },
   { rejectValue: string }
 >("layout/permanentDeletePageRemote", async ({ pageId }, { dispatch, rejectWithValue }) => {
-  dispatch(layoutActions.permanentDeleteFromTrash({ pageId }));
   try {
     await pagesApi.deleteFromTrash(pageId);
+    dispatch(layoutActions.permanentDeleteFromTrash({ pageId }));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "permanent delete failed";
     return rejectWithValue(msg);

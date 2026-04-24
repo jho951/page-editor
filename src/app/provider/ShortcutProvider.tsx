@@ -42,6 +42,19 @@ function findBinding(
     );
 }
 
+function hasNativeSelectAllTarget(target: Element | null): boolean {
+    if (!target) return false;
+
+    if (target instanceof HTMLTextAreaElement) return true;
+
+    if (target instanceof HTMLInputElement) {
+        const type = target.type.toLowerCase();
+        return !["button", "checkbox", "color", "file", "hidden", "image", "radio", "range", "reset", "submit"].includes(type);
+    }
+
+    return target instanceof HTMLElement && target.isContentEditable;
+}
+
 /**
  * 전역 단축키 이벤트를 구독해 Redux 액션으로 연결합니다.
  *
@@ -73,29 +86,13 @@ function ShortcutProvider({ children }: ProvidersProps): React.ReactElement {
 
             const typing = isTypingTarget(target);
             if (typing && combo === "Enter") return;
+            if (combo === "Mod+A" && hasNativeSelectAllTarget(target)) return;
 
             const binding = findBinding(bindings, combo, scope);
-            if (combo === "Mod+S" || combo === "Ctrl+S" || combo === "Meta+S") {
-                console.log("[EDITOR][shortcut]", {
-                    combo,
-                    scope,
-                    overlayDepth,
-                    typing,
-                    hasBinding: Boolean(binding),
-                    target: target?.tagName ?? null,
-                });
-            }
             if (!binding) return;
             if (typing && !binding.allowInInput) return;
 
             withPreventDefaults(e, () => {
-                if (binding.command === "save-page") {
-                    console.log("[EDITOR][shortcut-trigger]", {
-                        combo,
-                        command: binding.command,
-                        scope: binding.scope,
-                    });
-                }
                 dispatch(
                     shortcutsActions.triggerShortcut({
                         combo,

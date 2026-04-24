@@ -8,7 +8,6 @@ export type ShortcutCommand =
   | "undo-edit"
   | "redo-edit"
   | "new-page"
-  | "save-page"
   | "open-search"
   | "show-shortcuts"
   | "close-overlay"

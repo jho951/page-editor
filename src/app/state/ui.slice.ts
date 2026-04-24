@@ -24,8 +24,35 @@ export type ContextMenuState =
       items: [];
     };
 
+export type ConfirmState =
+  | {
+      open: true;
+      title: string;
+      message: string;
+      confirmLabel: string;
+      cancelLabel: string;
+      danger: boolean;
+      onConfirm: () => void;
+    }
+  | {
+      open: false;
+      title: "";
+      message: "";
+      confirmLabel: "확인";
+      cancelLabel: "취소";
+      danger: false;
+      onConfirm: null;
+    };
+
 export interface UiState {
   contextMenu: ContextMenuState;
+  confirm: ConfirmState;
+  toast: {
+    id: number;
+    open: boolean;
+    message: string;
+    duration: number;
+  };
 }
 
 /**
@@ -33,6 +60,16 @@ export interface UiState {
  */
 const initialState: UiState = {
   contextMenu: { open: false, x: 0, y: 0, items: [] },
+  confirm: {
+    open: false,
+    title: "",
+    message: "",
+    confirmLabel: "확인",
+    cancelLabel: "취소",
+    danger: false,
+    onConfirm: null,
+  },
+  toast: { id: 0, open: false, message: "", duration: 3000 },
 };
 
 /**
@@ -47,6 +84,49 @@ const uiSlice = createSlice({
     },
     closeContextMenu(state) {
       state.contextMenu = { open: false, x: 0, y: 0, items: [] };
+    },
+    openConfirm(
+      state,
+      action: PayloadAction<{
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        confirmLabel?: string;
+        cancelLabel?: string;
+        danger?: boolean;
+      }>
+    ) {
+      state.confirm = {
+        open: true,
+        title: action.payload.title,
+        message: action.payload.message,
+        onConfirm: action.payload.onConfirm,
+        confirmLabel: action.payload.confirmLabel ?? "확인",
+        cancelLabel: action.payload.cancelLabel ?? "취소",
+        danger: action.payload.danger ?? false,
+      };
+    },
+    closeConfirm(state) {
+      state.confirm = {
+        open: false,
+        title: "",
+        message: "",
+        confirmLabel: "확인",
+        cancelLabel: "취소",
+        danger: false,
+        onConfirm: null,
+      };
+    },
+    showToast(state, action: PayloadAction<{ message: string; duration?: number }>) {
+      state.toast = {
+        id: state.toast.id + 1,
+        open: true,
+        message: action.payload.message,
+        duration: action.payload.duration ?? 3000,
+      };
+    },
+    closeToast(state) {
+      state.toast = { ...state.toast, open: false };
     },
   },
 });

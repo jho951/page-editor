@@ -7,6 +7,7 @@ import { endpoints } from "@shared/api/endpoints.ts";
 import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
 import type {
   ApiEnvelope,
+  BlockResponse,
   DocumentResponse,
   DocumentTransactionResponse,
   DocumentVisibility,
@@ -33,8 +34,8 @@ export const documentsDomainApi = {
     unwrapApiEnvelope(await documentsApi.post<ApiEnvelope<DocumentResponse>, Record<string, unknown>>(endpoints.documents, body)),
   getDocument: async (documentId: string): Promise<DocumentResponse> =>
     unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<DocumentResponse>>(endpoints.documentById(documentId))),
-  getDocumentBlocks: async (documentId: string): Promise<unknown[]> =>
-    unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<unknown[]>>(endpoints.documentBlocks(documentId))),
+  getDocumentBlocks: async (documentId: string): Promise<BlockResponse[]> =>
+    unwrapApiEnvelope(await documentsApi.get<ApiEnvelope<BlockResponse[]>>(endpoints.documentBlocks(documentId))),
   updateDocument: async (
     documentId: string,
     body: {

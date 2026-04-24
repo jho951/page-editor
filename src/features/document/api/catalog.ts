@@ -55,6 +55,7 @@ function toCardItem(item: RemoteCatalogItem, fallbackKind: DocKind): DocCardItem
     title: String(item.title ?? "Untitled"),
     accent: "#D7D7D7",
     kind: fallbackKind,
+    createdAt: item.createdAt,
   };
 }
 

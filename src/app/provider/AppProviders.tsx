@@ -7,6 +7,8 @@ import { ShortcutProvider } from "@app/provider/ShortcutProvider";
 import type { ProvidersProps } from "@app/provider/provider.types";
 import { ContextMenuHost } from "@app/provider/ContextMenuHost.tsx";
 import { AuthBootstrap } from "@app/provider/AuthBootstrap.tsx";
+import { ToastHost } from "@app/provider/ToastHost.tsx";
+import { ConfirmHost } from "@app/provider/ConfirmHost.tsx";
 
 if (typeof window !== "undefined") {
   window.__APP_STORE__ = store;
@@ -34,6 +36,8 @@ function AppProviders({ children }: ProvidersProps): React.ReactElement {
           <ShortcutProvider>
             {children}
             <ContextMenuHost />
+            <ConfirmHost />
+            <ToastHost />
           </ShortcutProvider>
         </ThemeProvider>
       </AuthBootstrap>

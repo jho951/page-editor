@@ -10,16 +10,8 @@ import type { FolderItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 export const DEFAULT_FOLDER: FolderItem[] = [
     {
         id: "my",
-        label: "개인 페이지",
-        icon: "folder",
+        label: "모든 문서",
+        icon: "allDocs",
         children: [],
-    },
-    {
-        id: "pinned",
-        label: "즐겨찾기",
-        icon: "star",
-        children: [
-            { id: "documents", key: "allDocs", label: "Documents", icon: "star" },
-        ],
     },
 ];

@@ -49,6 +49,8 @@ export type LnbProps = {
     spaceName?: string;
     activeKey?: LnbActiveKey;
     onNavigate?: (key: LnbActiveKey) => void;
+    showTopRow?: boolean;
+    mobileOverlay?: boolean;
     collapsed?: boolean;
     onToggleCollapsed?: () => void;
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 
 import {AppRouter} from "@app/router/AppRouter.tsx";
 import { AuthGate } from "@features/auth/index.ts";
@@ -28,7 +28,7 @@ const Router: React.FC = () => {
           <Route path="/shared" element={<SharedPage />} />
           <Route path="/doc/:id" element={<DocumentDetailPage />} />
           <Route path="/delete" element={<DeletePage />} />
-          <Route path="/delete/:id" element={<DeletePage />} />
+          <Route path="/delete/:id" element={<Navigate to="/delete" replace />} />
         </Route>
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/signin" element={<SignInRedirectPage />} />

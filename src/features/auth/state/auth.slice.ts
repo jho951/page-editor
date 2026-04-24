@@ -4,7 +4,7 @@
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { HttpError } from "@shared/api/client.types.ts";
-import { authApi, buildStartFrontendRootUrl, type AuthUser } from "@features/auth/api/auth.ts";
+import { authApi, type AuthUser } from "@features/auth/api/auth.ts";
 import type { AuthState, RejectValue } from "@features/auth/state/auth.types.ts";
 
 /**
@@ -56,19 +56,10 @@ export const bootstrapAuth = createAsyncThunk<AuthUser, void, { rejectValue: Rej
 export const logoutAuth = createAsyncThunk<void, void, { rejectValue: string }>(
   "auth/logout",
   async (_arg, { rejectWithValue }) => {
-    let errorMessage: string | null = null;
     try {
       await authApi.logout();
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : "logout failed";
-    } finally {
-      if (typeof window !== "undefined") {
-        window.location.replace(buildStartFrontendRootUrl());
-      }
-    }
-
-    if (errorMessage) {
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error instanceof Error ? error.message : "logout failed");
     }
   }
 );

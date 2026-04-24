@@ -58,20 +58,6 @@
     letter-spacing: 0;
 }
 
-.cardDots {
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--base-radius);
-    background: rgba(var(--color-white-rgb), 0.78);
-    border: 1px solid var(--color-border-light);
-    color: rgba(var(--color-text-rgb), 0.46);
-    line-height: 1;
-    flex: 0 0 auto;
-}
-
 .preview {
     flex: 1;
     background:
@@ -81,6 +67,52 @@
     min-height: 148px;
     overflow: hidden;
     border: 1px solid var(--color-border-light);
+}
+
+.previewContent {
+    height: 100%;
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.previewItem {
+    color: rgba(var(--color-text-rgb), 0.84);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    word-break: break-word;
+}
+
+.previewParagraph {
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.previewHeading1 {
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 700;
+    color: var(--color-heading);
+}
+
+.previewHeading2 {
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 700;
+    color: var(--color-heading);
+}
+
+.previewHeading3 {
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 700;
+    color: rgba(var(--color-heading-rgb), 0.9);
 }
 
 .coverImg {
@@ -107,6 +139,16 @@
 
 .previewLineShort {
     width: 62%;
+}
+
+.previewEmpty {
+    height: 100%;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    color: rgba(var(--color-text-rgb), 0.45);
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .accentBar {
@@ -138,6 +180,26 @@
     min-height: 64px;
     margin: 0 16px 0 0;
     flex: none;
+}
+
+.cardList .previewContent {
+    padding: 10px 12px;
+    gap: 4px;
+}
+
+.cardList .previewParagraph,
+.cardList .previewHeading3 {
+    font-size: 11px;
+}
+
+.cardList .previewHeading1,
+.cardList .previewHeading2 {
+    font-size: 12px;
+}
+
+.cardList .previewEmpty {
+    padding: 10px 12px;
+    font-size: 10px;
 }
 
 .cardList .cardTop {

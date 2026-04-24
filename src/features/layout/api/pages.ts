@@ -21,6 +21,7 @@ export type CreatePageResponse = {
   title?: DocumentResponse["title"];
   parentId?: DocumentResponse["parentId"];
   version?: DocumentResponse["version"];
+  createdAt?: DocumentResponse["createdAt"];
   visibility?: DocumentVisibility;
   icon?: DocumentResponse["icon"];
   cover?: DocumentResponse["cover"];
@@ -149,7 +150,7 @@ export const pagesApi = {
     >(endpoints.editorOperationMove, {
       resourceType: "DOCUMENT",
       resourceId: documentId,
-      targetParentId: body.targetParentId,
+      targetParentId: normalizeParentId(body.targetParentId) ?? null,
       afterId: body.afterDocumentId,
       beforeId: body.beforeDocumentId,
     });

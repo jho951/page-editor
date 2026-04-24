@@ -3,11 +3,13 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@jho951/ui-components";
+import { Button, Icon } from "@jho951/ui-components";
+import { useAppSelector } from "@app/store/hooks.ts";
 import { editorActions } from "@features/editor/state/editor.slice.ts";
 import type { EditorBlockState } from "@features/editor/model/editor.types.ts";
 import type { BlockEditorProps } from "@features/editor/ui/block-editor/BlockEditor.types.ts";
 import { useBlockEditorController } from "@features/editor/ui/block-editor/useBlockEditorController.ts";
+import { shortcutsActions, selectShortcutPending } from "@features/shortcuts/index.ts";
 import styles from "@features/editor/ui/block-editor/BlockEditor.module.css";
 
 function hasMark(block: EditorBlockState, markType: "bold" | "italic" | "underline" | "strikethrough"): boolean {
@@ -27,6 +29,13 @@ const BLOCK_TYPE_OPTIONS: Array<{ label: string; value: EditorBlockState["draft"
 ];
 
 const TEXT_COLOR_OPTIONS = ["#1F2937", "#2563EB", "#0F766E", "#D97706", "#DC2626", "#7C3AED"];
+const EDITOR_UI_SHORTCUT_COMMANDS = new Set([
+  "select-current-block",
+  "clear-block-selection",
+  "edit-selected-block",
+  "open-block-menu",
+  "modify-current-block",
+]);
 
 /**
  * 블록 타입에 따라 textarea 스타일 클래스를 계산합니다.
@@ -66,10 +75,12 @@ function textareaStyle(block: EditorBlockState): React.CSSProperties {
  */
 function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
   const { blocks, dispatch, selectedBlockId } = useBlockEditorController(documentId);
+  const pendingShortcut = useAppSelector(selectShortcutPending);
   const [menuBlockId, setMenuBlockId] = useState<string | null>(null);
   const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
   const [dropHint, setDropHint] = useState<{ targetBlockId: string; placement: "before" | "after" } | null>(null);
   const rowRefs = useRef<Record<string, HTMLElement | null>>({});
+  const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const composingBlockIdRef = useRef<string | null>(null);
   const pendingSplitBlockIdRef = useRef<string | null>(null);
@@ -77,6 +88,25 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
   const recentSplitRef = useRef<{ signature: string; at: number } | null>(null);
   const dropHintRef = useRef<{ targetBlockId: string; placement: "before" | "after" } | null>(null);
   const dragScrollContainerRef = useRef<HTMLElement | null>(null);
+
+  const focusBlockTextarea = (blockId: string, offset = Number.MAX_SAFE_INTEGER, selectAll = false): void => {
+    const textarea = textareaRefs.current[blockId];
+    if (!textarea) return;
+
+    textarea.focus();
+    if (selectAll) {
+      textarea.setSelectionRange(0, textarea.value.length);
+      return;
+    }
+
+    const nextOffset = Math.max(0, Math.min(offset, textarea.value.length));
+    textarea.setSelectionRange(nextOffset, nextOffset);
+  };
+
+  const isEditorInputFocused = (): boolean => {
+    const activeElement = document.activeElement;
+    return activeElement instanceof HTMLElement && activeElement.dataset.editorBlockInput === "true";
+  };
 
   const splitBlockFromTextarea = (blockId: string, textarea: HTMLTextAreaElement | null): void => {
     if (!textarea) return;
@@ -245,6 +275,38 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
   }, [blocks, menuBlockId]);
 
   useEffect(() => {
+    if (!menuBlockId) return;
+
+    const closeMenuIfOutside = (target: EventTarget | null) => {
+      if (!(target instanceof Node)) return;
+
+      const menuElement = menuRefs.current[menuBlockId];
+      if (menuElement?.contains(target)) return;
+      setMenuBlockId(null);
+    };
+
+    const onPointerDown = (event: PointerEvent) => closeMenuIfOutside(event.target);
+    const onMouseDown = (event: MouseEvent) => closeMenuIfOutside(event.target);
+    const onClick = (event: MouseEvent) => closeMenuIfOutside(event.target);
+    const onTouchStart = (event: TouchEvent) => closeMenuIfOutside(event.target);
+    const onFocusIn = (event: FocusEvent) => closeMenuIfOutside(event.target);
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("mousedown", onMouseDown, true);
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("touchstart", onTouchStart, true);
+    document.addEventListener("focusin", onFocusIn, true);
+
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("mousedown", onMouseDown, true);
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("touchstart", onTouchStart, true);
+      document.removeEventListener("focusin", onFocusIn, true);
+    };
+  }, [menuBlockId]);
+
+  useEffect(() => {
     dropHintRef.current = dropHint;
   }, [dropHint]);
 
@@ -318,6 +380,56 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
     }
   }, [selectedBlockId]);
 
+  useEffect(() => {
+    if (!pendingShortcut) return;
+    if (!EDITOR_UI_SHORTCUT_COMMANDS.has(pendingShortcut.command)) return;
+
+    const fallbackBlockId = selectedBlockId ?? blocks[0]?.id ?? null;
+    const targetBlockId = fallbackBlockId;
+
+    if (pendingShortcut.command !== "select-current-block" && !isEditorInputFocused()) {
+      dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
+      return;
+    }
+
+    switch (pendingShortcut.command) {
+      case "select-current-block":
+        if (targetBlockId) {
+          dispatch(editorActions.setSelectedBlock(targetBlockId));
+          window.requestAnimationFrame(() => {
+            focusBlockTextarea(targetBlockId, Number.MAX_SAFE_INTEGER, true);
+          });
+        }
+        break;
+      case "clear-block-selection":
+        setMenuBlockId(null);
+        dispatch(editorActions.setSelectedBlock(null));
+        if (document.activeElement instanceof HTMLTextAreaElement) {
+          document.activeElement.blur();
+        }
+        break;
+      case "open-block-menu":
+      case "modify-current-block":
+        if (targetBlockId) {
+          dispatch(editorActions.setSelectedBlock(targetBlockId));
+          setMenuBlockId((current) => (current === targetBlockId ? null : targetBlockId));
+        }
+        break;
+      case "edit-selected-block":
+        if (targetBlockId) {
+          dispatch(editorActions.setSelectedBlock(targetBlockId));
+          window.requestAnimationFrame(() => {
+            focusBlockTextarea(targetBlockId);
+          });
+        }
+        break;
+      default:
+        break;
+    }
+
+    dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
+  }, [blocks, dispatch, pendingShortcut, selectedBlockId]);
+
   return (
     <section className={`${styles.wrap} ${draggingBlockId ? styles.wrapDragging : ""}`}>
       <div className={styles.list}>
@@ -346,10 +458,10 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
                   onClick={(event) => {
                     event.stopPropagation();
                     dispatch(editorActions.setSelectedBlock(block.id));
-                    setMenuBlockId((current) => (current === block.id ? null : block.id));
+                    setMenuBlockId(menuBlockId === block.id ? null : block.id);
                   }}
                 >
-                  +
+                  <Icon name="plus" source="url" basePath="/icons" size={14} />
                 </button>
                 <button
                   type="button"
@@ -367,11 +479,17 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
                     event.currentTarget.setPointerCapture?.(event.pointerId);
                   }}
                 >
-                  ⋮⋮
+                  <Icon name="dragHandle" source="url" basePath="/icons" size={14} />
                 </button>
 
                 {isSelected && isMenuOpen ? (
-                  <div className={styles.contextMenu} onClick={(event) => event.stopPropagation()}>
+                  <div
+                    ref={(element) => {
+                      menuRefs.current[block.id] = element;
+                    }}
+                    className={styles.contextMenu}
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <div className={styles.menuSection}>
                       <div className={styles.menuLabel}>Type</div>
                       <div className={styles.menuChips}>
@@ -469,6 +587,7 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
                   ref={(element) => {
                     textareaRefs.current[block.id] = element;
                   }}
+                  data-editor-block-input="true"
                   rows={1}
                   className={textareaClass(block)}
                   style={textareaStyle(block)}

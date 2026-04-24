@@ -9,4 +9,12 @@ export interface DocCardItem {
   title: string;
   accent: string;
   kind: DocKind;
+  createdAt?: string;
+}
+
+export type DocCardPreviewBlockType = "paragraph" | "heading1" | "heading2" | "heading3";
+
+export interface DocCardPreviewItem {
+  blockType: DocCardPreviewBlockType;
+  text: string;
 }

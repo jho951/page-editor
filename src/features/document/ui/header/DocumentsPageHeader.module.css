@@ -1,0 +1,171 @@
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-16);
+    padding: var(--space-8) var(--space-0) var(--space-4);
+}
+
+.titleWrap {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.title {
+    margin: 0;
+    font-size: 2.2rem;
+    line-height: 1.06;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--color-heading);
+}
+
+.subtitle {
+    margin: 0;
+    font-size: 1.3rem;
+    line-height: 1.4;
+    color: rgba(var(--color-text-rgb), 0.54);
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.viewToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.7);
+    border: 1px solid var(--color-border);
+    box-shadow:
+        0 18px 34px rgba(var(--color-black-rgb), 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.viewToggleButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(var(--color-text-rgb), 0.58);
+    transition:
+        background-color 140ms ease,
+        color 140ms ease,
+        box-shadow 140ms ease,
+        transform 140ms ease;
+}
+
+.viewToggleButton:hover {
+    color: rgba(var(--color-text-rgb), 0.86);
+}
+
+.viewToggleButtonActive {
+    background: rgba(var(--color-white-rgb), 0.94);
+    color: rgba(var(--color-text-rgb), 0.92);
+    box-shadow:
+        0 8px 16px rgba(var(--color-black-rgb), 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.toggleIcon {
+    display: inline-grid;
+    flex: none;
+    color: currentColor;
+}
+
+.toggleIconList {
+    width: 14px;
+    gap: 3px;
+}
+
+.toggleIconList span {
+    display: block;
+    width: 14px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.92;
+}
+
+.toggleIconGrid {
+    width: 14px;
+    height: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+}
+
+.toggleIconGrid span {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: currentColor;
+    opacity: 0.92;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-10);
+    }
+
+    .headerActions {
+        justify-content: flex-end;
+    }
+
+    .title {
+        font-size: 2.4rem;
+        line-height: 1.08;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        line-height: 1.35;
+    }
+
+    .viewToggle {
+        gap: 3px;
+        padding: 3px;
+    }
+
+    .viewToggleButton {
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
+    }
+
+    .toggleIconList {
+        width: 12px;
+        gap: 2px;
+    }
+
+    .toggleIconList span {
+        width: 12px;
+    }
+
+    .toggleIconGrid {
+        width: 12px;
+        height: 12px;
+    }
+
+    .toggleIconGrid span {
+        width: 5px;
+        height: 5px;
+    }
+}

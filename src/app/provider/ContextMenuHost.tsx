@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Menu } from "@jho951/ui-components";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import { uiActions } from "@app/state/ui.slice.ts";
+import styles from "./ContextMenuHost.module.css";
 
 /**
  * 전역 컨텍스트 메뉴를 표시하는 호스트 컴포넌트입니다.
@@ -15,6 +15,30 @@ function ContextMenuHost(): React.ReactElement | null {
   const menu = useAppSelector((s) => s.ui.contextMenu);
 
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const groups = React.useMemo(() => {
+    if (!menu.open) return [];
+
+    const first: typeof menu.items = [];
+    const middle: typeof menu.items = [];
+    const danger: typeof menu.items = [];
+
+    menu.items.forEach((item, index) => {
+      if (item.danger) {
+        danger.push(item);
+        return;
+      }
+
+      if (index === 0 && /새 탭/.test(item.label)) {
+        first.push(item);
+        return;
+      }
+
+      middle.push(item);
+    });
+
+    return [first, middle, danger].filter((group) => group.length > 0);
+  }, [menu]);
 
   useLayoutEffect(() => {
     if (!menu.open || !menuRef.current) return;
@@ -42,34 +66,32 @@ function ContextMenuHost(): React.ReactElement | null {
     <>
       <div
         onClick={() => dispatch(uiActions.closeContextMenu())}
-        style={{ position: "fixed", inset: 0, zIndex: 999 }}
+        className={styles.backdrop}
       />
       <div
         ref={menuRef}
-        style={{
-          position: "fixed",
-          zIndex: 1000,
-          visibility: "hidden",
-          minWidth: 160,
-          background: "white",
-          borderRadius: 8,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          border: "1px solid #e5e7eb",
-          padding: 6,
-        }}
+        className={styles.menu}
       >
-        <Menu
-          items={menu.items.map((item, index) => ({
-            id: String(index),
-            label: item.label,
-            danger: item.danger,
-            onSelect: () => {
-              item.onClick();
-              dispatch(uiActions.closeContextMenu());
-            },
-          }))}
-          onRequestClose={() => dispatch(uiActions.closeContextMenu())}
-        />
+        <div role="menu" className={styles.content}>
+          {groups.map((group, groupIndex) => (
+            <div key={groupIndex} role="group" className={styles.group}>
+              {group.map((item, itemIndex) => (
+                <button
+                  key={`${item.label}-${itemIndex}`}
+                  type="button"
+                  role="menuitem"
+                  className={`${styles.item} ${item.danger ? styles.itemDanger : ""}`}
+                  onClick={() => {
+                    item.onClick();
+                    dispatch(uiActions.closeContextMenu());
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </>,
     document.body

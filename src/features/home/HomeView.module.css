@@ -2,22 +2,7 @@
     max-width: 1120px;
     margin: 0 auto;
     display: grid;
-    gap: var(--space-34);
-}
-
-.header {
-    display: grid;
-    gap: var(--space-14);
-    padding: var(--space-8) var(--space-0) var(--space-4);
-}
-
-.title {
-    margin: 0;
-    font-size: 4rem;
-    line-height: 1.06;
-    font-weight: 700;
-    letter-spacing: 0;
-    color: var(--color-heading);
+    gap: var(--space-16);
 }
 
 .section {
@@ -53,10 +38,40 @@
     letter-spacing: 0;
 }
 
+.addButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.82);
+    color: rgba(var(--color-text-rgb), 0.74);
+    box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.08);
+    transition:
+        background-color 120ms ease,
+        color 120ms ease,
+        transform 120ms ease;
+}
+
+.addButton:hover {
+    background: rgba(var(--color-white-rgb), 0.96);
+    color: rgba(var(--color-text-rgb), 0.96);
+    transform: translateY(-1px);
+}
+
 .cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: var(--space-18);
+    align-items: start;
+}
+
+.list {
+    display: grid;
+    gap: 12px;
     align-items: start;
 }
 
@@ -73,15 +88,11 @@
 
 @media (max-width: 768px) {
     .page {
-        gap: var(--space-22);
+        gap: var(--space-14);
     }
 
     .section {
         padding: var(--layout-section-padding-mobile);
         border-radius: var(--base-radius);
-    }
-
-    .title {
-        font-size: 3.2rem;
     }
 }

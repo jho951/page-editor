@@ -1,8 +1,9 @@
 .content {
-  width: 100%;
+  width: min(100%, 1120px);
   height: 100%;
   min-height: 0;
   display: flex;
+  margin: 0 auto;
 }
 
 .loadingState {
@@ -122,16 +123,16 @@
 }
 
 .editorCenterView {
-  width: min(100%, 1060px);
+  width: 100%;
   min-height: 100%;
-  margin: 0 auto;
+  margin: 0;
   display: flex;
-  justify-content: center;
-  padding: 0 clamp(28px, 5vw, 56px) 96px;
+  justify-content: flex-start;
+  padding: 0 0 96px;
 }
 
 .editorCanvas {
-  width: min(100%, 860px);
+  width: 100%;
   min-height: 100%;
   padding: 0;
 }
@@ -147,7 +148,7 @@
   outline: 0;
   background: transparent;
   color: var(--color-heading);
-  font-size: 18px;
+  font-size: 2.2rem;
   font-weight: 700;
   line-height: 1.35;
   letter-spacing: -0.01em;
@@ -175,6 +176,116 @@
   width: 100%;
 }
 
+.childPages {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0 20px;
+}
+
+.childPageShell {
+  position: relative;
+}
+
+.childPageShellDragging {
+  opacity: 0.58;
+}
+
+.childPageDropBefore::before,
+.childPageDropAfter::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(var(--color-primary-rgb), 0.72);
+}
+
+.childPageDropBefore::before {
+  top: -5px;
+}
+
+.childPageDropAfter::after {
+  bottom: -5px;
+}
+
+.childPageBlock {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(var(--color-text-rgb), 0.08);
+  border-radius: 14px;
+  background: rgba(var(--color-white-rgb), 0.82);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.childPageBlock:hover {
+  background: rgba(var(--color-white-rgb), 0.96);
+  border-color: rgba(var(--color-text-rgb), 0.14);
+  transform: translateY(-1px);
+}
+
+.childPageIcon {
+  width: 32px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(var(--color-text-rgb), 0.04);
+  color: rgba(var(--color-text-rgb), 0.68);
+  flex: 0 0 auto;
+}
+
+.childPageCopy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.childPageTitle {
+  color: var(--color-heading);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.childPagePreview {
+  color: rgba(var(--color-text-rgb), 0.58);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.childPageArrow {
+  color: rgba(var(--color-text-rgb), 0.34);
+  font-size: 18px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.childPageDrag {
+  color: rgba(var(--color-text-rgb), 0.28);
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  flex: 0 0 auto;
+  cursor: grab;
+}
+
 @keyframes document-detail-spinner {
   from {
     transform: rotate(0deg);
@@ -192,7 +303,7 @@
 
   .editorCenterView {
     width: 100%;
-    padding: 0 var(--space-14) 48px;
+    padding: 0 0 48px;
   }
 
   .editorCanvas {
@@ -206,5 +317,10 @@
 
   .titleInput {
     font-size: 18px;
+  }
+
+  .childPageBlock {
+    padding: 11px 12px;
+    gap: 12px;
   }
 }

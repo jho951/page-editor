@@ -7,6 +7,11 @@
     overflow: hidden;
 }
 
+.desktopSidebar {
+    min-width: 0;
+    height: 100%;
+}
+
 .main {
     display: flex;
     flex-direction: column;
@@ -23,10 +28,88 @@
     padding: var(--layout-content-padding);
 }
 
+.mobileOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(248, 248, 246, 0.98);
+    backdrop-filter: blur(18px);
+}
+
+.mobileOverlayPanel {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(circle at top left, rgba(205, 216, 255, 0.34), transparent 32%),
+        linear-gradient(180deg, #ffffff 0%, #f6f5f2 100%);
+    animation: slideInFromLeft 220ms ease;
+}
+
+.mobileOverlayHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-18) var(--space-16) var(--space-12);
+}
+
+.mobileOverlayLogo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+}
+
+.mobileOverlayClose {
+    position: relative;
+    width: 2.6rem;
+    min-width: 2.6rem;
+    height: 2.6rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.88);
+    box-shadow: 0 12px 28px rgba(var(--color-black-rgb), 0.08);
+}
+
+.mobileOverlayCloseBar {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1.5px;
+    border-radius: 999px;
+    background: rgba(var(--color-text-rgb), 0.78);
+}
+
+.mobileOverlayCloseBar:first-child {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.mobileOverlayCloseBar:last-child {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-5%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 @media (max-width: 840px) {
     .wrap {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+    }
+
+    .desktopSidebar {
+        display: none;
     }
 
     .main {

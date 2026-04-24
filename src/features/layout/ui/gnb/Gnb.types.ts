@@ -4,4 +4,5 @@
 
 export interface GnbProps {
     profile: string;
+    onOpenMobileMenu?: () => void;
 }

@@ -11,7 +11,8 @@
 }
 
 .backIconBtn,
-.menuBtn {
+.menuBtn,
+.mobileLogoBtn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -54,6 +55,36 @@
     color: #b7791f;
 }
 
+.restoreBtn {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.82);
+    box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.08);
+    color: rgba(var(--color-primary-rgb), 0.88);
+}
+
+.restoreBtn:hover {
+    background: rgba(var(--color-white-rgb), 0.96);
+    color: rgba(var(--color-primary-rgb), 1);
+}
+
+.deleteDetailBtn {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.82);
+    box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.08);
+    color: rgba(208, 73, 58, 0.82);
+}
+
+.deleteDetailBtn:hover {
+    background: rgba(var(--color-white-rgb), 0.96);
+    color: rgba(208, 73, 58, 0.98);
+}
+
 .backIconBtn:hover,
 .menuBtn:hover,
 .deleteActionBtn:hover {
@@ -93,7 +124,6 @@
     padding: var(--space-0) var(--space-14);
 }
 
-.shareBtn,
 .deleteActionBtn {
     min-height: var(--gnb-button-height);
     padding: var(--space-0) var(--space-14);
@@ -104,28 +134,6 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-6);
-}
-
-.shareBtn {
-    width: 2rem;
-    min-width: 2rem;
-    min-height: 2rem;
-    height: 2rem;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    color: rgba(var(--color-text-rgb), 0.74);
-}
-
-.shareBtn:hover {
-    background: transparent;
-    color: rgba(var(--color-text-rgb), 0.98);
-}
-
-.shareBtnActive {
-    color: rgba(var(--color-primary-rgb), 0.92);
 }
 
 .menuBtn {
@@ -141,6 +149,21 @@
     background: transparent;
 }
 
+.mobileLogoBtn {
+    display: none;
+    min-width: auto;
+    height: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+}
+
+.mobileLogoBtn:hover {
+    background: transparent;
+}
+
 .backIcon {
     font-size: var(--font-base);
     line-height: 1;
@@ -152,11 +175,14 @@
         padding: var(--space-8) var(--space-4) var(--space-10);
     }
 
+    .mobileLogoBtn {
+        display: inline-flex;
+    }
+
     .gnbRight {
         gap: var(--space-6);
     }
 
-    .shareBtn,
     .deleteActionBtn {
         padding-inline: var(--space-10);
     }

@@ -10,7 +10,7 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   border: 0;
   background: transparent;
   color: var(--color-text, #111827);
@@ -29,13 +29,6 @@
   flex: 1;
 }
 
-.right {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  flex: 0 0 auto;
-}
-
 .nodeIcon {
   flex: 0 0 auto;
   opacity: 1;
@@ -45,13 +38,21 @@
 .iconSlot {
   width: var(--size-20);
   height: var(--size-20);
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  color: var(--color-primary);
-  background: rgba(var(--color-primary-rgb), 0.1);
+  color: inherit;
   flex: 0 0 auto;
+}
+
+.nodeIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transition: opacity 120ms ease;
 }
 
 .iconSlot:empty::before {
@@ -63,6 +64,28 @@
 
 .row:hover {
   background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.dragging {
+  opacity: 0.46;
+}
+
+.dropBefore {
+  box-shadow: inset 0 2px 0 rgba(var(--color-primary-rgb), 0.92);
+}
+
+.dropAfter {
+  box-shadow: inset 0 -2px 0 rgba(var(--color-primary-rgb), 0.92);
+}
+
+.dropInside {
+  background: rgba(var(--color-primary-rgb), 0.12);
+  outline: 1px solid rgba(var(--color-primary-rgb), 0.24);
+}
+
+.rowHasChevron:hover .nodeIconWrap,
+.rowHasChevron:focus-within .nodeIconWrap {
+  opacity: 0;
 }
 
 .active {
@@ -78,36 +101,6 @@
   text-overflow: ellipsis;
 }
 
-.actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--size-24);
-  height: var(--size-24);
-  padding: var(--space-0);
-  opacity: 0;
-  transition: opacity 120ms ease;
-}
-
-.row:hover .actions {
-  opacity: 1;
-}
-
-.deleteBtn {
-  opacity: 0;
-  width: var(--size-24);
-  min-width: var(--size-24);
-  min-height: var(--size-24);
-  padding: var(--space-0) var(--space-6);
-  transition: opacity 120ms ease;
-}
-
-.row:hover .deleteBtn,
-.row:focus-within .deleteBtn,
-.active .deleteBtn {
-  opacity: 1;
-}
-
 .chevron {
   width: 16px;
   display: inline-flex;
@@ -120,16 +113,47 @@
   transition: transform 140ms ease;
 }
 
-.chevronOpen {
-  transform: rotate(90deg);
+.chevronBtn {
+  width: var(--size-24);
+  height: var(--size-24);
+  min-width: var(--size-24);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.82;
 }
 
-.deleteText {
-  font-size: var(--font-xxs);
-  font-weight: 600;
-  color: var(--color-danger);
-  line-height: 1;
-  white-space: nowrap;
+.chevronBtnInSlot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.rowHasChevron:hover .chevronBtnInSlot,
+.rowHasChevron:focus-within .chevronBtnInSlot,
+.chevronBtnOpen.chevronBtnInSlot {
+  opacity: 1;
+}
+
+.chevronBtn:hover {
+  background: rgba(var(--color-primary-rgb), 0.08);
+}
+
+.chevronBtnOpen {
+  opacity: 1;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
 }
 
 .children {

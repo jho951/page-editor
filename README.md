@@ -73,9 +73,18 @@ EDITOR_PAGE_IMAGE=editor-page:local ./scripts/run.docker.sh prod build
 ### 스타일 규칙
 
 - spacing, padding, height, 기본 폰트 같은 전역 토큰은 `src/assets/styles/class.css`에서 관리합니다.
-- 기본 폰트는 `--base-font: 'Pretendard', sans-serif;`를 사용합니다.
+- 기본 폰트는 SF 계열 시스템 스택 `-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif`를 사용합니다.
 - 화면 CSS에서는 하드코딩 값보다 `--space-*`, `--control-height-*`, `--layout-*` 같은 변수를 우선 사용합니다.
 - 컴포넌트/화면 전용 스타일은 각 feature의 `*.module.css`에 둡니다.
+
+## 최근 UI/UX 변경
+
+- 모바일 GNB는 로고를 메뉴 트리거로 사용하고, LNB는 전체 화면 슬라이드 오버레이로 열립니다.
+- 홈/휴지통 목록 상단 헤더는 공용 `DocumentsPageHeader`로 통합되어 모바일에서도 제목과 보기 토글이 한 줄 `space-between` 레이아웃을 공유합니다.
+- 문서 목록, 휴지통 목록, LNB 노드, 블록 편집기에서 context menu 중심 조작을 사용합니다.
+- 휴지통 상세 라우트 `/delete/:id`는 노출하지 않고, `/delete` 목록에서 복구/완전 삭제를 처리합니다.
+- 완전 삭제는 커스텀 confirm 모달과 우측 하단 toast를 사용합니다.
+- 최근 상세 변경 내역은 [docs/RECENT_UI_UPDATES.md](./docs/RECENT_UI_UPDATES.md) 에 정리합니다.
 
 ### TypeScript 설정
 

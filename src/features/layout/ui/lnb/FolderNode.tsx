@@ -3,7 +3,10 @@
  */
 
 import React from "react";
-import { Button, Icon } from "@jho951/ui-components";
+import { Icon } from "@jho951/ui-components";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "@app/store/hooks.ts";
+import { uiActions } from "@app/state/ui.slice.ts";
 import type { FolderItem, LnbActiveKey } from "@features/layout/ui/lnb/Lnb.types.ts";
 import type { FolderNodeProps } from "@features/layout/ui/lnb/FolderNode.types.ts";
 import styles from "@features/layout/ui/lnb/FolderNode.module.css";
@@ -19,6 +22,7 @@ function iconFallback(name: string): string {
   if (name === "document") return "•";
   if (name === "star") return "★";
   if (name === "users") return "◎";
+  if (name === "allDocs") return "▣";
   if (name === "folder") return "◧";
   return "•";
 }
@@ -34,7 +38,7 @@ function resolveIconName(node: FolderItem): string {
   if (node.key === "allDocs") return "document";
   if (node.key === "shared") return "users";
   if (node.key === "home") return "logo";
-  if (node.id === "my") return "folder";
+  if (node.id === "my") return "allDocs";
   if (node.id === "pinned") return "star";
   if (node.id === "sharedRoot") return "users";
   return "document";
@@ -55,7 +59,15 @@ function FolderNode({
   onNavigate,
   onAddChild,
   onMoveToTrash,
+  draggingPageId,
+  dropHint,
+  onDragStartPage,
+  onDragEndPage,
+  onDragOverPage,
+  onDropPage,
 }: FolderNodeProps): React.ReactElement {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const isSection = level === 0;
 
@@ -67,82 +79,142 @@ function FolderNode({
 
   const isActive = activeKey === myKey;
 
-  const isFolderLike = hasChildren || !node.key;
-
   const iconName = resolveIconName(node);
 
-  const isDeletable = !isSection && (node.docId != null || String(node.key ?? "").startsWith("folder:"));
+  const isPersonalSection = isSection && node.id === "my";
 
-  const isNewPage = node.label === "새 페이지";
+  const isPageNode = !isSection && !!node.key;
 
-  const isPersonalSection = isSection && node.label === "개인 페이지";
+  const showChevron = isSection || hasChildren;
 
-  const showChevron = isSection || isFolderLike;
+  const canAddChild = isPersonalSection || isPageNode;
+  const pageId = node.docId ?? node.id;
+  const isDragging = draggingPageId === pageId;
+  const isDropBefore = dropHint?.targetId === pageId && dropHint.placement === "before";
+  const isDropAfter = dropHint?.targetId === pageId && dropHint.placement === "after";
+  const isDropInside = dropHint?.targetId === pageId && dropHint.placement === "inside";
 
   const onRowClick = () => {
-    if (isSection || isFolderLike) {
+    if (isSection) {
       onToggle(node.id);
       return;
     }
     if (node.key) onNavigate?.(node.key);
   };
 
+  const onRowContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    const pagePath = `/doc/${pageId}`;
+    const items: Array<{
+      label: string;
+      onClick: () => void;
+      danger?: boolean;
+    }> = [];
+
+    if (canAddChild) {
+      items.push({
+        label: "새 문서",
+        onClick: () => {
+          onAddChild?.(node.id);
+        },
+      });
+    }
+
+    if (!isSection && node.key) {
+      items.push(
+        {
+          label: "새 탭에서 열기",
+          onClick: () => {
+            window.open(pagePath, "_blank", "noopener,noreferrer");
+          },
+        },
+        {
+          label: "이동",
+          onClick: () => {
+            dispatch(uiActions.showToast({ message: "이동 기능은 준비 중입니다." }));
+          },
+        },
+        {
+          label: "삭제",
+          onClick: () => {
+            onMoveToTrash?.(pageId);
+            if (myKey === activeKey) {
+              navigate("/");
+            }
+          },
+          danger: true,
+        }
+      );
+    }
+
+    if (items.length === 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    dispatch(
+      uiActions.openContextMenu({
+        x: event.clientX,
+        y: event.clientY,
+        items,
+      })
+    );
+  };
+
   return (
     <div className={styles.node} style={{ "--level": level } as React.CSSProperties}>
       <div
-        className={[styles.row, isActive ? styles.active : ""].filter(Boolean).join(" ")}
+        className={[
+          styles.row,
+          showChevron ? styles.rowHasChevron : "",
+          isActive ? styles.active : "",
+          isDragging ? styles.dragging : "",
+          isDropBefore ? styles.dropBefore : "",
+          isDropAfter ? styles.dropAfter : "",
+          isDropInside ? styles.dropInside : "",
+        ].filter(Boolean).join(" ")}
         onClick={onRowClick}
+        onContextMenu={onRowContextMenu}
+        draggable={!isSection}
+        onDragStart={(event) => {
+          if (isSection) return;
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", pageId);
+          onDragStartPage?.(pageId);
+        }}
+        onDragEnd={() => {
+          onDragEndPage?.();
+        }}
+        onDragOver={(event) => {
+          if (isSection && node.id !== "my") return;
+          onDragOverPage?.(event, node, level);
+        }}
+        onDrop={(event) => {
+          onDropPage?.(event, node);
+        }}
       >
         <span className={styles.left}>
           <span className={styles.iconSlot} data-fallback={iconFallback(iconName)} aria-hidden="true">
-            <Icon name={iconName} source="url" basePath="/icons" size={16} className={styles.nodeIcon} />
-          </span>
-          <span className={styles.label}>{node.label}</span>
-        </span>
-        <span className={styles.right}>
-          {isPersonalSection ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="s"
-              className={styles.actions}
-              aria-label="새 페이지 추가"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddChild?.(node.id);
-              }}
-            >
-              <Icon name="plus" source="url" basePath="/icons" size={16} />
-            </Button>
-          ) : null}
-          {showChevron ? (
+            <span className={styles.nodeIconWrap}>
+              <Icon name={iconName} source="url" basePath="/icons" size={16} className={styles.nodeIcon} />
+            </span>
+            {showChevron ? (
+              <button
+                type="button"
+                className={`${styles.chevronBtn} ${styles.chevronBtnInSlot} ${isOpen ? styles.chevronBtnOpen : ""}`}
+                aria-label={isOpen ? "하위 페이지 접기" : "하위 페이지 펼치기"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggle(node.id);
+                }}
+        >
             <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`} aria-hidden="true">
               ›
             </span>
-          ) : null}
-          {isDeletable ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="s"
-              className={styles.deleteBtn}
-              aria-label="휴지통으로 이동"
-              title="휴지통으로 이동"
-              onClick={(e) => {
-                e.stopPropagation();
-
-                const pid = node.docId ?? node.id;
-                onMoveToTrash?.(pid);
-              }}
-            >
-              {isNewPage ? (
-                <span className={styles.deleteText}>삭제</span>
-              ) : (
-                <Icon name="trash" source="url" basePath="/icons" size={14} />
-              )}
-            </Button>
-          ) : null}
-        </span>
+          </button>
+        ) : null}
+      </span>
+      <span className={styles.label}>{node.label}</span>
+    </span>
       </div>
 
       {isOpen && hasChildren ? (
@@ -158,6 +230,12 @@ function FolderNode({
               onNavigate={onNavigate}
               onAddChild={onAddChild}
               onMoveToTrash={onMoveToTrash}
+              draggingPageId={draggingPageId}
+              dropHint={dropHint}
+              onDragStartPage={onDragStartPage}
+              onDragEndPage={onDragEndPage}
+              onDragOverPage={onDragOverPage}
+              onDropPage={onDropPage}
             />
           ))}
         </div>
@@ -169,7 +247,7 @@ function FolderNode({
           className={[styles.row, styles.empty].join(" ")}
           onClick={() => onAddChild?.(node.id)}
         >
-          새 페이지 추가
+          새 문서 추가
         </button>
       ) : null}
     </div>

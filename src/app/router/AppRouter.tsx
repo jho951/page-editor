@@ -1,6 +1,6 @@
 /** 공통 레이아웃 안에서 중첩 라우트를 렌더링하는 라우터 셸 컴포넌트입니다. */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -18,6 +18,7 @@ import { selectAuthUser } from "@features/auth/index.ts";
 import type {LnbActiveKey} from "@features/layout/index.ts";
 import { Gnb, Lnb, layoutActions } from "@features/layout/index.ts";
 import { shortcutsActions, selectShortcutPending } from "@features/shortcuts/index.ts";
+import { Icon } from "@jho951/ui-components";
 
 import styles from '@app/router/AppRouter.module.css'
 
@@ -68,6 +69,7 @@ function activeKeyToPath(key: LnbActiveKey): string {
 function AppRouter() {
 
     const dispatch = useDispatch<AppDispatch>();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const location = useLocation();
 
@@ -115,6 +117,10 @@ function AppRouter() {
     }, [location.pathname, activeKey, dispatch]);
 
     useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
         if (!pendingShortcut) return;
 
         switch (pendingShortcut.command) {
@@ -130,9 +136,9 @@ function AppRouter() {
                 dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
                 return;
             case "close-overlay":
+                setMobileMenuOpen(false);
                 dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
                 return;
-            case "save-page":
             case "new-page":
                 if (!location.pathname.startsWith("/doc/")) {
                     dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
@@ -145,26 +151,71 @@ function AppRouter() {
 
     return (
         <div className={styles.wrap}>
-            <Lnb
-                activeKey={activeKey}
-                onNavigate={(key) => {
-                    dispatch(layoutActions.setActiveKey(key));
-                    navigate(activeKeyToPath(key));
-                }}
-                recentDocs={recentDocs}
-                pinnedDocs={pinnedDocs}
-                lastLocation={lastLocation}
-                onOpenDoc={(docId) => navigate(`/doc/${docId}`)}
-                onResumeLast={(loc) => navigate(`/doc/${loc.docId}`)}
-            />
+            <div className={styles.desktopSidebar}>
+                <Lnb
+                    activeKey={activeKey}
+                    onNavigate={(key) => {
+                        dispatch(layoutActions.setActiveKey(key));
+                        navigate(activeKeyToPath(key));
+                    }}
+                    recentDocs={recentDocs}
+                    pinnedDocs={pinnedDocs}
+                    lastLocation={lastLocation}
+                    onOpenDoc={(docId) => navigate(`/doc/${docId}`)}
+                    onResumeLast={(loc) => navigate(`/doc/${loc.docId}`)}
+                />
+            </div>
             <div className={styles.main}>
-                <Gnb profile={user?.name || user?.email || "U"} />
+                <Gnb
+                    profile={user?.name || user?.email || "U"}
+                    onOpenMobileMenu={() => setMobileMenuOpen(true)}
+                />
 
                 <main className={styles.content}>
                     <Outlet />
                 </main>
 
             </div>
+            {mobileMenuOpen && (
+                <div
+                    className={styles.mobileOverlay}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="메뉴"
+                >
+                    <div className={styles.mobileOverlayPanel}>
+                        <div className={styles.mobileOverlayHeader}>
+                            <span className={styles.mobileOverlayLogo} aria-hidden="true">
+                                <Icon name="logo" source="url" basePath="/icons" size={40} />
+                            </span>
+                            <button
+                                type="button"
+                                className={styles.mobileOverlayClose}
+                                onClick={() => setMobileMenuOpen(false)}
+                                aria-label="메뉴 닫기"
+                            >
+                                <span className={styles.mobileOverlayCloseBar} />
+                                <span className={styles.mobileOverlayCloseBar} />
+                            </button>
+                        </div>
+                        <Lnb
+                            activeKey={activeKey}
+                            showTopRow={false}
+                            mobileOverlay
+                            onNavigate={(key) => {
+                                dispatch(layoutActions.setActiveKey(key));
+                                navigate(activeKeyToPath(key));
+                                setMobileMenuOpen(false);
+                            }}
+                            recentDocs={recentDocs}
+                            pinnedDocs={pinnedDocs}
+                            lastLocation={lastLocation}
+                            onOpenDoc={(docId) => navigate(`/doc/${docId}`)}
+                            onResumeLast={(loc) => navigate(`/doc/${loc.docId}`)}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
