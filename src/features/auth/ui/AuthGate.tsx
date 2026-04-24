@@ -11,7 +11,10 @@ import {
   selectAuthStatus,
   selectIsAuthenticated,
 } from "@features/auth/state/auth.selector.ts";
-import { buildSsoStartUrl } from "@features/auth/api/auth.ts";
+import {
+  buildLocationNextPath,
+  redirectToSsoStart,
+} from "@features/auth/lib/authNavigation.ts";
 import type { AuthGateProps } from "@features/auth/ui/AuthGate.types.ts";
 
 /**
@@ -21,22 +24,16 @@ import type { AuthGateProps } from "@features/auth/ui/AuthGate.types.ts";
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function AuthGate({ children }: AuthGateProps): React.ReactElement {
-
   const location = useLocation();
-
   const initialized = useAppSelector(selectAuthInitialized);
-
   const status = useAppSelector(selectAuthStatus);
-
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
-
   const error = useAppSelector(selectAuthError);
-
-  const nextPath = `${location.pathname}${location.search}${location.hash}`;
+  const nextPath = buildLocationNextPath(location);
 
   useEffect(() => {
     if (!initialized || status === "loading" || isAuthenticated) return;
-    window.location.replace(buildSsoStartUrl(nextPath));
+    redirectToSsoStart(nextPath);
   }, [initialized, isAuthenticated, nextPath, status]);
 
   if (!initialized || status === "loading") {

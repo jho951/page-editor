@@ -5,5 +5,6 @@ export { ContextMenuHost } from "./ContextMenuHost.tsx";
 export { ConfirmHost } from "./ConfirmHost.tsx";
 export { ToastHost } from "./ToastHost.tsx";
 export { ShortcutProvider } from "./ShortcutProvider.tsx";
-export { ThemeProvider, useTheme } from "./ThemeProvider.tsx";
+export { ThemeProvider } from "./ThemeProvider.tsx";
+export { useTheme } from "./useTheme.ts";
 export type { ProvidersProps, Theme, ThemeContextValue } from "./provider.types.ts";

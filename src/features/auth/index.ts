@@ -15,6 +15,12 @@ export { AuthRequired } from "@features/auth/ui/AuthRequired.tsx";
 export { AuthCallbackView } from "@features/auth/ui/AuthCallbackView.tsx";
 export { SignInRedirectView } from "@features/auth/ui/SignInRedirectView.tsx";
 export {
+  buildLocationNextPath,
+  isAuthTransitionPath,
+  redirectAfterAuthSuccess,
+  redirectToSsoStart,
+} from "@features/auth/lib/authNavigation.ts";
+export {
   authApi,
   buildPostAuthSuccessUrl,
   buildStartFrontendRootUrl,

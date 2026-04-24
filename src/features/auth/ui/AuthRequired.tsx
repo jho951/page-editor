@@ -4,7 +4,7 @@
 
 import React from "react";
 import { Button } from "@jho951/ui-components";
-import { buildSsoStartUrl } from "@features/auth/api/auth.ts";
+import { redirectToSsoStart } from "@features/auth/lib/authNavigation.ts";
 import type { AuthRequiredProps } from "@features/auth/ui/AuthRequired.types.ts";
 import styles from "@features/auth/ui/AuthRequired.module.css";
 
@@ -29,7 +29,7 @@ function AuthRequired({ nextPath, error }: AuthRequiredProps): React.ReactElemen
             type="button"
             variant="ghost"
             onClick={() => {
-              window.location.href = buildSsoStartUrl(nextPath);
+              redirectToSsoStart(nextPath, "assign");
             }}
           >
             SSO 로그인 시작

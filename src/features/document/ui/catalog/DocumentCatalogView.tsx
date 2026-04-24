@@ -12,7 +12,9 @@ import { fetchCatalog } from "@features/document/api/catalog.ts";
 import type { DocCardItem } from "@features/document/model/document.types.ts";
 import type { DocumentCatalogViewProps } from "@features/document/ui/catalog/DocumentCatalogView.types.ts";
 import type { DocumentsViewMode } from "@features/document/ui/tab/DocumentTab.types.ts";
+import { DocumentPageHeader } from "@features/document/ui/shell/index.ts";
 
+import shellStyles from "@features/document/ui/shell/DocumentPageShell.module.css";
 import styles from "./DocumentCatalogView.module.css";
 
 /**
@@ -67,57 +69,49 @@ function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): 
     }, [baseItems, query]);
 
     return (
-        <div className={styles.content}>
-            <div className={styles.headerRow}>
-                <div className={styles.headerCopy}>
-                    <div className={styles.headerTitleGroup}>
-                        <div className={styles.pageEyebrow}>
-                            문서함
-                        </div>
-                        <div className={styles.tab}>
-                            <h1 className={styles.tabIcon}>문서 컬렉션</h1>
-                        </div>
-                    </div>
-                    <p className={styles.headerLead}>
-                        최근 문서와 저장된 문서를 한 곳에서 확인하고 바로 이어서 작성하세요.
-                    </p>
-                </div>
-
-                <div className={styles.headerActions}>
-                    <Input
-                        className={styles.searchField}
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search"
-                        aria-label="Search"
-                        size="m"
-                    />
-
-                    <div className={styles.viewToggle} role="group" aria-label="View mode">
-                        <Switch
-                            checked={viewMode === "list"}
-                            onChange={(checked) => setViewMode(checked ? "list" : "grid")}
-                            aria-label="Toggle list view"
-                            label="List"
+        <div className={shellStyles.content}>
+            <DocumentPageHeader
+                eyebrow="문서함"
+                title="문서 컬렉션"
+                lead="최근 문서와 저장된 문서를 한 곳에서 확인하고 바로 이어서 작성하세요."
+                actions={
+                    <>
+                        <Input
+                            className={styles.searchField}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search"
+                            aria-label="Search"
+                            size="m"
                         />
-                    </div>
 
-                    <button className={styles.iconBtn} type="button" aria-label="Sort">
-                        최신
-                    </button>
-                </div>
-            </div>
+                        <div className={styles.viewToggle} role="group" aria-label="View mode">
+                            <Switch
+                                checked={viewMode === "list"}
+                                onChange={(checked) => setViewMode(checked ? "list" : "grid")}
+                                aria-label="Toggle list view"
+                                label="List"
+                            />
+                        </div>
 
-            <div className={styles.headerMeta}>
-                <div className={styles.yearLabel}>2026 문서함</div>
-                <div className={styles.yearLabel}>{items.length}개 문서</div>
-            </div>
-            <div className={styles.statusRow} aria-live="polite">
+                        <button className={styles.iconBtn} type="button" aria-label="Sort">
+                            최신
+                        </button>
+                    </>
+                }
+                meta={
+                    <>
+                        <div className={shellStyles.metaChip}>2026 문서함</div>
+                        <div className={shellStyles.metaChip}>{items.length}개 문서</div>
+                    </>
+                }
+            />
+            <div className={shellStyles.statusRow} aria-live="polite">
                 {loading ? "문서 목록 불러오는 중..." : source === "remote" ? "API 문서 목록 사용 중" : "로컬 카탈로그 사용 중"}
                 {error ? ` · ${error}` : ""}
             </div>
 
-            <div className={styles.surfacePanel}>
+            <div className={shellStyles.surfacePanel}>
                 <DocumentGrid items={items} variant={viewMode} onItemClick={(id) => navigate(`/doc/${id}`)} />
             </div>
         </div>

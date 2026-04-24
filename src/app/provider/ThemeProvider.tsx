@@ -1,19 +1,9 @@
-/* eslint-disable react-refresh/only-export-components */
 /**
  * 테마 상태와 토글 컨텍스트를 제공합니다.
  */
-import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useState
-} from "react";
-import type {ProvidersProps, Theme, ThemeContextValue} from "@app/provider/provider.types.ts";
-
-/**
- * 현재 테마 값을 공유하는 React context입니다.
- */
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+import React, { useEffect, useState } from "react";
+import { ThemeContext } from "@app/provider/ThemeContext.ts";
+import type { ProvidersProps, Theme, ThemeContextValue } from "@app/provider/provider.types.ts";
 
 /**
  * 선택한 테마를 저장할 localStorage 키입니다.
@@ -89,17 +79,6 @@ const ThemeProvider: React.FC<ProvidersProps> = ({ children }) => {
     return (
         <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
     );
-};
-
-/**
- * 현재 테마와 테마 변경 함수를 제공하는 훅입니다.
- * @returns 화면 제어에 필요한 상태와 핸들러 객체를 반환합니다.
- */
-export const useTheme = (): ThemeContextValue => {
-
-    const ctx = useContext(ThemeContext);
-    if (!ctx) { throw new Error("useTheme must be used within ThemeProvider");}
-    return ctx;
 };
 
 export {ThemeProvider};

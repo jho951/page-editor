@@ -5,7 +5,8 @@
 import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { buildSsoStartUrl, resolveNextPathFromParams } from "@features/auth/api/auth.ts";
+import { resolveNextPathFromParams } from "@features/auth/api/auth.ts";
+import { redirectToSsoStart } from "@features/auth/lib/authNavigation.ts";
 
 /**
  * 로그인 진입 경로를 계산해 인증 시작 페이지로 이동시킵니다.
@@ -17,7 +18,7 @@ function SignInRedirectView(): React.ReactElement {
     const nextPath = resolveNextPathFromParams(params);
 
     useEffect(() => {
-        window.location.replace(buildSsoStartUrl(nextPath));
+        redirectToSsoStart(nextPath);
     }, [nextPath]);
 
     return <span>로그인 시작 페이지로 이동 중입니다...</span>;

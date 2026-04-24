@@ -4,4 +4,5 @@
 
 export interface BlockEditorProps {
     documentId: string;
+    closeMenuSignal?: number;
 }

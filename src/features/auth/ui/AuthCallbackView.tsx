@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import {
-    buildPostAuthSuccessUrl,
-    buildSsoStartUrl,
     consumePostLoginRedirect,
     exchangeAuthTicket,
     resolveNextPathFromParams,
     bootstrapAuth,
+    redirectAfterAuthSuccess,
+    redirectToSsoStart,
     selectAuthError,
     selectIsAuthenticated,
 } from "@features/auth/index.ts";
@@ -62,19 +62,14 @@ function AuthCallbackView(): React.ReactElement {
 
     useEffect(() => {
         if (!isAuthenticated) return;
-        const successRedirectUrl = buildPostAuthSuccessUrl(nextPath);
-        if (/^https?:\/\//.test(successRedirectUrl)) {
-            window.location.replace(successRedirectUrl);
-            return;
-        }
-        navigate(successRedirectUrl, { replace: true });
+        redirectAfterAuthSuccess(nextPath, navigate);
     }, [isAuthenticated, navigate, nextPath]);
 
     if (authError) {
         return (
             <div style={{ padding: 24 }}>
                 <p>SSO 로그인 실패: {authError}</p>
-                <button type="button" onClick={() => window.location.replace(buildSsoStartUrl(nextPath))}>
+                <button type="button" onClick={() => redirectToSsoStart(nextPath)}>
                     다시 로그인
                 </button>
             </div>
@@ -84,7 +79,7 @@ function AuthCallbackView(): React.ReactElement {
         return (
             <div style={{ padding: 24 }}>
                 <p>로그인 처리에 필요한 ticket 이 없습니다.</p>
-                <button type="button" onClick={() => window.location.replace(buildSsoStartUrl(nextPath))}>
+                <button type="button" onClick={() => redirectToSsoStart(nextPath)}>
                     다시 로그인
                 </button>
             </div>
@@ -94,7 +89,7 @@ function AuthCallbackView(): React.ReactElement {
         return (
             <div style={{ padding: 24 }}>
                 <p>로그인 처리 실패: {error}</p>
-                <button type="button" onClick={() => window.location.replace(buildSsoStartUrl(nextPath))}>
+                <button type="button" onClick={() => redirectToSsoStart(nextPath)}>
                     다시 로그인
                 </button>
             </div>

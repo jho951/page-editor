@@ -5,7 +5,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import type { AppDispatch } from "@app/store/store.ts";
-import { useTheme } from "@app/provider/ThemeProvider.tsx";
+import { useTheme } from "@app/provider/useTheme.ts";
 
 import {
     selectLastLocation,
@@ -122,7 +122,7 @@ function AppRouter() {
 
     useEffect(() => {
         closeMobileMenu();
-    }, [closeMobileMenu, location.pathname]);
+    }, [location.pathname]);
 
     const handlePendingShortcut = useEffectEvent(() => {
         if (!pendingShortcut) return;
