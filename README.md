@@ -46,6 +46,7 @@ EDITOR_PAGE_IMAGE=editor-page:local ./scripts/run.docker.sh prod build
 - 빌드 전용 compose: `docker/docker-compose.build.yml`
 - 운영 실행 compose: `docker/docker-compose.prod.yml`
 - CI/CD는 `docker/docker-compose.build.yml`로 이미지를 빌드해 ECR에 push하고, 운영 서버는 `docker/docker-compose.prod.yml`로 이미지를 pull합니다.
+- EC2에 소스를 clone 하지 않는 배포용 최소 산출물은 `deploy/ec2`에 둡니다.
 
 로컬 실행:
 

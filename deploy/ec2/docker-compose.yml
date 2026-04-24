@@ -1,0 +1,7 @@
+services:
+  editor:
+    image: ${EDITOR_PAGE_IMAGE:?EDITOR_PAGE_IMAGE is required}
+    container_name: editor-page
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${EDITOR_PAGE_PROD_PORT:-8081}:80"
