@@ -33,6 +33,11 @@ env:
   CD_PROFILE: ec2-compose
   AWS_REGION: ${{ vars.AWS_REGION || 'ap-northeast-2' }}
   DEPLOY_COMMAND: ${{ secrets.DEPLOY_COMMAND }}
+  HAS_EC2_DEPLOY_TARGET: ${{ secrets.DEPLOY_HOST != '' && secrets.DEPLOY_SSH_KEY != '' }}
+  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || '' }}
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'ec2-user' }}
+  DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+  DEPLOY_BUNDLE_DIR: ${{ vars.DEPLOY_BUNDLE_DIR || '/opt/deploy' }}
   HEALTH_URL: ${{ vars.HEALTH_URL || '' }}
   READY_URL: ${{ vars.READY_URL || '' }}
 
@@ -69,6 +74,8 @@ jobs:
     outputs:
       image_uri: ${{ steps.resolve.outputs.image_uri }}
       latest_image_uri: ${{ steps.resolve.outputs.latest_image_uri }}
+      repository: ${{ steps.resolve.outputs.repository }}
+      registry: ${{ steps.resolve.outputs.registry }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,8 +98,19 @@ jobs:
           repo="${ECR_REPOSITORY_NAME:-${{ needs.deploy-gate.outputs.deploy_environment }}-${SERVICE_NAME}}"
           image_uri="${{ steps.login-ecr.outputs.registry }}/${repo}:${GITHUB_SHA}"
           latest_image_uri="${{ steps.login-ecr.outputs.registry }}/${repo}:latest"
+          echo "repository=$repo" >> "$GITHUB_OUTPUT"
+          echo "registry=${{ steps.login-ecr.outputs.registry }}" >> "$GITHUB_OUTPUT"
           echo "image_uri=$image_uri" >> "$GITHUB_OUTPUT"
           echo "latest_image_uri=$latest_image_uri" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure ECR repository
+        shell: bash
+        env:
+          REPOSITORY_NAME: ${{ steps.resolve.outputs.repository }}
+        run: |
+          set -euo pipefail
+          aws ecr describe-repositories --region "${AWS_REGION}" --repository-names "${REPOSITORY_NAME}" >/dev/null 2>&1 || \
+            aws ecr create-repository --region "${AWS_REGION}" --repository-name "${REPOSITORY_NAME}" >/dev/null
 
       - name: Build and push image
         shell: bash
@@ -135,17 +153,51 @@ jobs:
           EDITOR_PAGE_IMAGE: 123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/prod-editor-page:test
         run: docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config >/tmp/editor-page-prod.yml
 
-      - name: Deploy
+      - name: Setup SSH agent
+        if: ${{ env.HAS_EC2_DEPLOY_TARGET == 'true' }}
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add deploy host to known_hosts
+        if: ${{ env.HAS_EC2_DEPLOY_TARGET == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        if: ${{ env.HAS_EC2_DEPLOY_TARGET == 'true' }}
+        shell: bash
+        env:
+          EDITOR_PAGE_IMAGE: ${{ needs.image.outputs.image_uri }}
+          REGISTRY: ${{ needs.image.outputs.registry }}
+        run: |
+          set -euo pipefail
+          ssh -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "AWS_REGION='${AWS_REGION}' REGISTRY='${REGISTRY}' EDITOR_PAGE_IMAGE='${EDITOR_PAGE_IMAGE}' DEPLOY_BUNDLE_DIR='${DEPLOY_BUNDLE_DIR}' bash -se" <<'EOF'
+          set -euo pipefail
+          aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${REGISTRY}"
+          cd "${DEPLOY_BUNDLE_DIR}"
+          test -f .env.frontend
+          sed -i "s|^EDITOR_PAGE_IMAGE=.*$|EDITOR_PAGE_IMAGE=${EDITOR_PAGE_IMAGE}|" .env.frontend
+          ./scripts/deploy-stack.sh up
+          EOF
+
+      - name: Fallback deploy command
+        if: ${{ env.HAS_EC2_DEPLOY_TARGET != 'true' && env.DEPLOY_COMMAND != '' }}
         shell: bash
         env:
           EDITOR_PAGE_IMAGE: ${{ needs.image.outputs.image_uri }}
         run: |
           set -euo pipefail
-          if [ -n "${DEPLOY_COMMAND}" ]; then
-            eval "${DEPLOY_COMMAND}"
-          else
-            echo "DEPLOY_COMMAND secret is not configured; image publish and compose validation completed."
-          fi
+          eval "${DEPLOY_COMMAND}"
+
+      - name: Skip deploy
+        if: ${{ env.HAS_EC2_DEPLOY_TARGET != 'true' && env.DEPLOY_COMMAND == '' }}
+        shell: bash
+        run: echo "No EC2 deploy target or DEPLOY_COMMAND configured; image publish and compose validation completed."
 
   health-check:
     name: Health Check
@@ -156,7 +208,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${DEPLOY_COMMAND}" ] || [ -z "${HEALTH_URL}" ]; then
+          if [ "${HAS_EC2_DEPLOY_TARGET}" != "true" ] && [ -z "${DEPLOY_COMMAND}" ]; then
+            echo "Skipping remote health check."
+            exit 0
+          fi
+          if [ -z "${HEALTH_URL}" ]; then
             echo "Skipping remote health check."
             exit 0
           fi
@@ -171,7 +227,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${DEPLOY_COMMAND}" ] || [ -z "${READY_URL}" ]; then
+          if [ "${HAS_EC2_DEPLOY_TARGET}" != "true" ] && [ -z "${DEPLOY_COMMAND}" ]; then
+            echo "Skipping remote smoke test."
+            exit 0
+          fi
+          if [ -z "${READY_URL}" ]; then
             echo "Skipping remote smoke test."
             exit 0
           fi
