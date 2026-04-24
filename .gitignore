@@ -15,6 +15,7 @@ node_modules/
 # -----------------------------
 .env*
 !.env.example
+!deploy/ec2/.env.production.example
 
 # -----------------------------
 # 🐛 Debug logs
