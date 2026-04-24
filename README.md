@@ -86,6 +86,11 @@ EDITOR_PAGE_IMAGE=editor-page:local ./scripts/run.docker.sh prod build
 - 완전 삭제는 커스텀 confirm 모달과 우측 하단 toast를 사용합니다.
 - 최근 상세 변경 내역은 [docs/RECENT_UI_UPDATES.md](./docs/RECENT_UI_UPDATES.md) 에 정리합니다.
 
+## 운영 문서
+
+- 운영 요구사항: [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md)
+- 배포 정책 ADR: [docs/adr/0001-image-only-deployment-on-ec2.md](./docs/adr/0001-image-only-deployment-on-ec2.md)
+
 ### TypeScript 설정
 
 - `tsconfig.json`: 프로젝트 참조 진입점입니다.
