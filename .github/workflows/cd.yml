@@ -57,6 +57,8 @@ jobs:
             target="${{ inputs.deploy_environment }}"
           elif [ "${{ github.ref_type }}" = "tag" ]; then
             target="prod"
+          elif [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_name }}" = "master" ]; then
+            target="prod"
           else
             target="dev"
           fi
@@ -66,10 +68,52 @@ jobs:
           fi
           echo "environment=$target" >> "$GITHUB_OUTPUT"
 
+  quality:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: deploy-gate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        shell: bash
+        run: npm ci
+
+      - name: Typecheck
+        shell: bash
+        run: npm run typecheck
+
+      - name: Lint
+        shell: bash
+        run: npm run lint
+
+      - name: Build
+        shell: bash
+        env:
+          VITE_GATEWAY_BASE_URL: ${{ vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_API_PROXY_TARGET: ${{ vars.VITE_API_PROXY_TARGET || vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_DOCUMENTS_API_BASE_URL: ${{ vars.VITE_DOCUMENTS_API_BASE_URL || vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_START_FRONTEND_URL: ${{ vars.VITE_START_FRONTEND_URL || 'https://myeditor.n-e.kr' }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://editor.myeditor.n-e.kr' }}
+          VITE_POST_AUTH_REDIRECT_URL: ${{ vars.VITE_POST_AUTH_REDIRECT_URL || vars.VITE_SITE_URL || 'https://editor.myeditor.n-e.kr' }}
+          VITE_ENABLE_REMOTE_DOCS: ${{ vars.VITE_ENABLE_REMOTE_DOCS || 'true' }}
+          VITE_PORT: ${{ vars.VITE_PORT || '5174' }}
+        run: npm run build
+
   image:
     name: Image
     runs-on: ubuntu-latest
-    needs: deploy-gate
+    needs:
+      - deploy-gate
+      - quality
     environment: ${{ needs.deploy-gate.outputs.deploy_environment }}
     outputs:
       image_uri: ${{ steps.resolve.outputs.image_uri }}
