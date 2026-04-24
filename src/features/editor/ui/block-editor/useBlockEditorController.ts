@@ -120,6 +120,38 @@ export function useBlockEditorController(documentId: string) {
     saveStateRef.current = saveState;
   }, [saveState]);
 
+  const requestSave = (force = false): void => {
+    if (saveStateRef.current === "saving") {
+      if (force) {
+        pendingForceSaveRef.current = true;
+        console.log("[EDITOR][request-save-deferred]", {
+          force,
+          saveState: saveStateRef.current,
+          currentDocumentId: latestEditorRef.current.document.currentDocumentId,
+          queueLength: latestEditorRef.current.queue.ops.length,
+          inFlight: latestEditorRef.current.inFlight,
+        });
+      }
+      return;
+    }
+    if (saveTimerRef.current !== null) {
+      window.clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = window.setTimeout(() => {
+      saveTimerRef.current = null;
+      if (saveStateRef.current === "saving") return;
+      console.log("[EDITOR][request-save]", {
+        force,
+        saveState: saveStateRef.current,
+        currentDocumentId: latestEditorRef.current.document.currentDocumentId,
+        queueLength: latestEditorRef.current.queue.ops.length,
+        inFlight: latestEditorRef.current.inFlight,
+      });
+      void dispatch(flushEditorTransactions(force ? { force: true } : undefined));
+    }, 0);
+  };
+
   useEffect(() => {
     if (saveStateRef.current === "saving") return;
     if (!pendingForceSaveRef.current) return;
@@ -215,39 +247,7 @@ export function useBlockEditorController(documentId: string) {
       void dispatch(flushEditorTransactions());
     };
   }, [dispatch, documentId]);
-
   const statusText = useMemo(() => formatStatus(saveState, lastSavedAt), [saveState, lastSavedAt]);
-  function requestSave(force = false): void {
-    if (saveStateRef.current === "saving") {
-      if (force) {
-        pendingForceSaveRef.current = true;
-        console.log("[EDITOR][request-save-deferred]", {
-          force,
-          saveState: saveStateRef.current,
-          currentDocumentId: latestEditorRef.current.document.currentDocumentId,
-          queueLength: latestEditorRef.current.queue.ops.length,
-          inFlight: latestEditorRef.current.inFlight,
-        });
-      }
-      return;
-    }
-    if (saveTimerRef.current !== null) {
-      window.clearTimeout(saveTimerRef.current);
-    }
-
-    saveTimerRef.current = window.setTimeout(() => {
-      saveTimerRef.current = null;
-      if (saveStateRef.current === "saving") return;
-      console.log("[EDITOR][request-save]", {
-        force,
-        saveState: saveStateRef.current,
-        currentDocumentId: latestEditorRef.current.document.currentDocumentId,
-        queueLength: latestEditorRef.current.queue.ops.length,
-        inFlight: latestEditorRef.current.inFlight,
-      });
-      void dispatch(flushEditorTransactions(force ? { force: true } : undefined));
-    }, 0);
-  }
 
   return {
     blocks,

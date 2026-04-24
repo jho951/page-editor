@@ -2,7 +2,7 @@
  * 블록 목록을 렌더링하고 편집 액션을 연결하는 에디터 UI입니다.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Button, Icon } from "@jho951/ui-components";
 import { useAppSelector } from "@app/store/hooks.ts";
 import { editorActions } from "@features/editor/state/editor.slice.ts";
@@ -88,6 +88,14 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
   const recentSplitRef = useRef<{ signature: string; at: number } | null>(null);
   const dropHintRef = useRef<{ targetBlockId: string; placement: "before" | "after" } | null>(null);
   const dragScrollContainerRef = useRef<HTMLElement | null>(null);
+
+  const closeMenu = useEffectEvent(() => {
+    setMenuBlockId(null);
+  });
+
+  const toggleMenuForBlock = useEffectEvent((blockId: string) => {
+    setMenuBlockId((current) => (current === blockId ? null : blockId));
+  });
 
   const focusBlockTextarea = (blockId: string, offset = Number.MAX_SAFE_INTEGER, selectAll = false): void => {
     const textarea = textareaRefs.current[blockId];
@@ -271,7 +279,7 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
   useEffect(() => {
     if (!menuBlockId) return;
     if (blocks.some((block) => block.id === menuBlockId)) return;
-    setMenuBlockId(null);
+    closeMenu();
   }, [blocks, menuBlockId]);
 
   useEffect(() => {
@@ -402,7 +410,7 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
         }
         break;
       case "clear-block-selection":
-        setMenuBlockId(null);
+        closeMenu();
         dispatch(editorActions.setSelectedBlock(null));
         if (document.activeElement instanceof HTMLTextAreaElement) {
           document.activeElement.blur();
@@ -412,7 +420,7 @@ function BlockEditor({ documentId }: BlockEditorProps): React.ReactElement {
       case "modify-current-block":
         if (targetBlockId) {
           dispatch(editorActions.setSelectedBlock(targetBlockId));
-          setMenuBlockId((current) => (current === targetBlockId ? null : targetBlockId));
+          toggleMenuForBlock(targetBlockId);
         }
         break;
       case "edit-selected-block":

@@ -1,6 +1,6 @@
 /** 공통 레이아웃 안에서 중첩 라우트를 렌더링하는 라우터 셸 컴포넌트입니다. */
 
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -108,6 +108,10 @@ function AppRouter() {
 
     const pendingShortcut = useSelector(selectShortcutPending);
 
+    const closeMobileMenu = useEffectEvent(() => {
+        setMobileMenuOpen(false);
+    });
+
     useEffect(() => {
 
         const nextKey = pathToActiveKey(location.pathname);
@@ -117,10 +121,10 @@ function AppRouter() {
     }, [location.pathname, activeKey, dispatch]);
 
     useEffect(() => {
-        setMobileMenuOpen(false);
-    }, [location.pathname]);
+        closeMobileMenu();
+    }, [closeMobileMenu, location.pathname]);
 
-    useEffect(() => {
+    const handlePendingShortcut = useEffectEvent(() => {
         if (!pendingShortcut) return;
 
         switch (pendingShortcut.command) {
@@ -136,7 +140,7 @@ function AppRouter() {
                 dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
                 return;
             case "close-overlay":
-                setMobileMenuOpen(false);
+                closeMobileMenu();
                 dispatch(shortcutsActions.consumeShortcut(pendingShortcut.id));
                 return;
             case "new-page":
@@ -147,6 +151,11 @@ function AppRouter() {
             default:
                 return;
         }
+    });
+
+    useEffect(() => {
+        if (!pendingShortcut) return;
+        handlePendingShortcut();
     }, [dispatch, location.pathname, navigate, pendingShortcut, toggleTheme]);
 
     return (

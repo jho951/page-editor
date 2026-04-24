@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * 테마 상태와 토글 컨텍스트를 제공합니다.
  */
