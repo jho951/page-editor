@@ -1,8 +1,6 @@
 services:
   editor:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      target: production
+    image: ${EDITOR_PAGE_IMAGE:?EDITOR_PAGE_IMAGE is required}
     ports:
-      - "8081:80"
+      - "${EDITOR_PAGE_PROD_PORT:-8081}:80"
+    restart: unless-stopped

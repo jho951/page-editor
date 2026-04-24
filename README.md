@@ -24,15 +24,28 @@ npm run dev
 - `editor` 서비스에 dev compose 오버레이(`docker/docker-compose.dev.yml`)를 적용해 실행
 - `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh dev logs`로 확인
 
-배포 모드(정적 빌드 + Nginx):
+운영 모드(Nginx runtime, image-only):
 
 ```bash
+# 미리 빌드된 이미지를 pull한 뒤 실행
+EDITOR_PAGE_IMAGE=123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/prod-editor-page:latest \
 ./scripts/run.docker.sh prod up
 ```
 
 - 주소: `http://localhost:8081`
 - `editor` 서비스에 prod compose 오버레이(`docker/docker-compose.prod.yml`)를 적용해 실행
-- `up`은 detached 모드로 뜨고, 로그는 `./scripts/run.docker.sh prod logs`로 확인
+- prod `up`은 호스트 빌드를 하지 않고 `docker pull` 후 실행
+- 로그는 `./scripts/run.docker.sh prod logs`로 확인
+
+운영 이미지 로컬 빌드 검증:
+
+```bash
+EDITOR_PAGE_IMAGE=editor-page:local ./scripts/run.docker.sh prod build
+```
+
+- 빌드 전용 compose: `docker/docker-compose.build.yml`
+- 운영 실행 compose: `docker/docker-compose.prod.yml`
+- CI/CD는 `docker/docker-compose.build.yml`로 이미지를 빌드해 ECR에 push하고, 운영 서버는 `docker/docker-compose.prod.yml`로 이미지를 pull합니다.
 
 로컬 실행:
 
@@ -80,6 +93,11 @@ npm run dev
 [`.env`](.env.example)
 
 현재 로컬 MSA 기준 기본 gateway는 `http://localhost:8080` 이며, 프론트는 gateway의 `/v1/**` 공개 API를 호출합니다.
+
+운영 Docker 실행에는 아래 값도 사용합니다.
+
+- `EDITOR_PAGE_IMAGE`
+- `EDITOR_PAGE_PROD_PORT`
 
 ## API 연동 기준
 
