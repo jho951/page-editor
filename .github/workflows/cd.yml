@@ -100,13 +100,13 @@ jobs:
           EDITOR_PAGE_IMAGE: ${{ steps.resolve.outputs.image_uri }}
           PUBLISH_LATEST: ${{ github.ref_name == 'main' || github.ref_name == 'master' }}
           LATEST_IMAGE_URI: ${{ steps.resolve.outputs.latest_image_uri }}
-          VITE_GATEWAY_BASE_URL: ${{ vars.VITE_GATEWAY_BASE_URL || 'https://api.example.com' }}
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || vars.VITE_GATEWAY_BASE_URL || 'https://api.example.com' }}
-          VITE_API_PROXY_TARGET: ${{ vars.VITE_API_PROXY_TARGET || vars.VITE_GATEWAY_BASE_URL || 'https://api.example.com' }}
-          VITE_DOCUMENTS_API_BASE_URL: ${{ vars.VITE_DOCUMENTS_API_BASE_URL || vars.VITE_GATEWAY_BASE_URL || 'https://api.example.com' }}
-          VITE_START_FRONTEND_URL: ${{ vars.VITE_START_FRONTEND_URL || 'https://start.example.com' }}
-          VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://editor.example.com' }}
-          VITE_POST_AUTH_REDIRECT_URL: ${{ vars.VITE_POST_AUTH_REDIRECT_URL || vars.VITE_SITE_URL || 'https://editor.example.com' }}
+          VITE_GATEWAY_BASE_URL: ${{ vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_API_PROXY_TARGET: ${{ vars.VITE_API_PROXY_TARGET || vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_DOCUMENTS_API_BASE_URL: ${{ vars.VITE_DOCUMENTS_API_BASE_URL || vars.VITE_GATEWAY_BASE_URL || 'https://api.myeditor.n-e.kr' }}
+          VITE_START_FRONTEND_URL: ${{ vars.VITE_START_FRONTEND_URL || 'https://myeditor.n-e.kr' }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://editor.myeditor.n-e.kr' }}
+          VITE_POST_AUTH_REDIRECT_URL: ${{ vars.VITE_POST_AUTH_REDIRECT_URL || vars.VITE_SITE_URL || 'https://editor.myeditor.n-e.kr' }}
           VITE_ENABLE_REMOTE_DOCS: ${{ vars.VITE_ENABLE_REMOTE_DOCS || 'true' }}
           VITE_PORT: ${{ vars.VITE_PORT || '5174' }}
         run: |

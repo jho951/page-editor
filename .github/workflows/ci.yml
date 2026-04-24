@@ -29,12 +29,12 @@ jobs:
 
       - name: Build
         env:
-          VITE_GATEWAY_BASE_URL: https://api.example.com
-          VITE_API_BASE_URL: https://api.example.com
-          VITE_API_PROXY_TARGET: https://api.example.com
-          VITE_DOCUMENTS_API_BASE_URL: https://api.example.com
-          VITE_START_FRONTEND_URL: https://start.example.com
-          VITE_SITE_URL: https://editor.example.com
-          VITE_POST_AUTH_REDIRECT_URL: https://editor.example.com
+          VITE_GATEWAY_BASE_URL: https://api.myeditor.n-e.kr
+          VITE_API_BASE_URL: https://api.myeditor.n-e.kr
+          VITE_API_PROXY_TARGET: https://api.myeditor.n-e.kr
+          VITE_DOCUMENTS_API_BASE_URL: https://api.myeditor.n-e.kr
+          VITE_START_FRONTEND_URL: https://myeditor.n-e.kr
+          VITE_SITE_URL: https://editor.myeditor.n-e.kr
+          VITE_POST_AUTH_REDIRECT_URL: https://editor.myeditor.n-e.kr
           VITE_ENABLE_REMOTE_DOCS: "true"
         run: npm run build
