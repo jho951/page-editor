@@ -1,47 +1,49 @@
 .wrap {
-  min-height: calc(100vh - 48px);
-  display: grid;
-  place-items: center;
-  padding: 32px;
+    min-height: calc(100vh - 48px);
+    display: grid;
+    place-items: center;
+    padding: 32px;
 }
 
 .panel {
-  width: min(420px, 100%);
-  padding: 28px;
-  border-radius: var(--base-radius);
-  border: 1px solid var(--color-border);
-  background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.96), rgba(var(--color-bg-gray-rgb), 0.92));
-  box-shadow: 0 20px 50px rgba(21, 24, 30, 0.08);
+    width: min(440px, 100%);
+    padding: 30px;
+    border-radius: 30px;
+    border: 1px solid var(--surface-border);
+    background: rgba(var(--color-white-rgb), 0.78);
+    box-shadow: var(--surface-shadow-lg);
+    backdrop-filter: blur(26px) saturate(1.2);
+    -webkit-backdrop-filter: blur(26px) saturate(1.2);
 }
 
 .eyebrow {
-  margin: 0 0 10px;
-  color: var(--color-heading);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0;
+    margin: 0 0 10px;
+    color: rgba(var(--color-text-rgb), 0.62);
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 
 .title {
-  margin: 0 0 10px;
-  color: var(--color-text);
-  font-size: 28px;
-  line-height: 1.15;
+    margin: 0 0 10px;
+    color: var(--color-heading);
+    font-size: 3rem;
+    line-height: 1.05;
+    letter-spacing: -0.05em;
 }
 
 .desc {
-  margin: 0 0 18px;
-  color: rgba(var(--color-text-rgb), 0.72);
-  line-height: 1.6;
+    margin: 0 0 18px;
+    color: rgba(var(--color-text-rgb), 0.72);
+    line-height: 1.7;
 }
 
 .error {
-  margin: 0 0 14px;
-  color: #b3261e;
-  font-size: 14px;
+    margin: 0 0 14px;
+    color: var(--color-danger);
+    font-size: 1.4rem;
 }
 
 .actions {
-  display: flex;
-  justify-content: flex-start;
+    display: flex;
+    justify-content: flex-start;
 }

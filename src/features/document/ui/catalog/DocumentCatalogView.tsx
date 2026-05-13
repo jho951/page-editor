@@ -5,8 +5,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { Input, Switch } from "@jho951/ui-components";
-
 import { DocumentGrid } from "@features/document/ui/grid/DocumentGrid.tsx";
 import { fetchCatalog } from "@features/document/api/catalog.ts";
 import type { DocCardItem } from "@features/document/model/document.types.ts";
@@ -72,36 +70,48 @@ function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): 
         <div className={shellStyles.content}>
             <DocumentPageHeader
                 eyebrow="문서함"
-                title="문서 컬렉션"
-                lead="최근 문서와 저장된 문서를 한 곳에서 확인하고 바로 이어서 작성하세요."
+                title="문서 라이브러리"
+                lead="최근 문서와 저장된 문서를 한곳에서 보고, 정렬하고, 바로 편집하세요."
                 actions={
                     <>
-                        <Input
-                            className={styles.searchField}
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search"
-                            aria-label="Search"
-                            size="m"
-                        />
+                        <label className={styles.searchField}>
+                            <input
+                                className={styles.searchInput}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="문서 검색"
+                                aria-label="문서 검색"
+                            />
+                            <span className={styles.searchIcon} aria-hidden="true">
+                                <span className={styles.searchLens} />
+                            </span>
+                        </label>
 
                         <div className={styles.viewToggle} role="group" aria-label="View mode">
-                            <Switch
-                                checked={viewMode === "list"}
-                                onChange={(checked) => setViewMode(checked ? "list" : "grid")}
-                                aria-label="Toggle list view"
-                                label="List"
-                            />
+                            <button
+                                type="button"
+                                className={`${styles.viewButton} ${viewMode === "grid" ? styles.viewButtonActive : ""}`}
+                                onClick={() => setViewMode("grid")}
+                            >
+                                카드
+                            </button>
+                            <button
+                                type="button"
+                                className={`${styles.viewButton} ${viewMode === "list" ? styles.viewButtonActive : ""}`}
+                                onClick={() => setViewMode("list")}
+                            >
+                                리스트
+                            </button>
                         </div>
 
                         <button className={styles.iconBtn} type="button" aria-label="Sort">
-                            최신
+                            최신순
                         </button>
                     </>
                 }
                 meta={
                     <>
-                        <div className={shellStyles.metaChip}>2026 문서함</div>
+                        <div className={shellStyles.metaChip}>Collections</div>
                         <div className={shellStyles.metaChip}>{items.length}개 문서</div>
                     </>
                 }

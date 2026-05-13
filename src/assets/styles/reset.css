@@ -13,6 +13,7 @@
 html {
     font-size: 62.5%;
     scroll-behavior: smooth;
+    color-scheme: light;
 }
 
 /* ------------------------------
@@ -23,12 +24,13 @@ body {
     background: var(--color-bg);
     color: var(--color-text);
     font-size: 1.6rem;
-    font-family: var(--base-font), serif;
+    font-family: var(--text-font);
     line-height: 1.6;
-    text-rendering: optimizeSpeed;
+    text-rendering: optimizeLegibility;
+    font-kerning: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, background-color 0.3s ease;
     visibility: visible;
 }
 
@@ -39,8 +41,17 @@ body::before {
     z-index: 0;
 
     background:
-        linear-gradient(180deg, #ffffff 0%, var(--color-bg) 46%, var(--color-bg-gray) 100%);
+        radial-gradient(circle at top left, rgba(var(--color-accent-rgb), 0.42), transparent 24%),
+        radial-gradient(circle at top right, rgba(var(--color-primary-rgb), 0.14), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(var(--color-primary-rgb), 0.08), transparent 18%),
+        linear-gradient(180deg, #fbfcff 0%, var(--color-bg) 48%, var(--color-bg-blue) 100%);
     pointer-events: none;
+}
+
+#root {
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
 }
 
 /* ------------------------------
@@ -64,10 +75,25 @@ button,
 textarea,
 select {
     font: inherit;
+    font-family: var(--text-font);
     color: inherit;
     background: none;
     border: none;
     outline: none;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--display-font);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+:where(strong, b) {
+    font-weight: 650;
+}
+
+:where(code, pre, kbd, samp) {
+    font-family: var(--mono-font);
 }
 
 /* ------------------------------
@@ -76,6 +102,10 @@ select {
 button {
     cursor: pointer;
     background: none;
+}
+
+textarea {
+    field-sizing: content;
 }
 a {
     text-decoration: none;

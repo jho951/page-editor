@@ -443,7 +443,7 @@ export const createChildPage = createAsyncThunk<
     upsertCatalogItem({
       id: documentId,
       title: response.title ?? "새 문서",
-      accent: "#D7D7D7",
+      accent: "#c7d7ff",
       kind: "documents",
       createdAt: response.createdAt ?? findDocById(documentId)?.createdAt,
     });

@@ -222,14 +222,16 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
             {showTopRow && (
                 <>
                     <div className={styles.topRow}>
-                        <Button
-                            className={styles.logoBtn}
-                            variant="ghost"
-                            size="s"
-                            type="button"
-                            onClick={() => go("home")}>
-                            <Icon name="logo" source="url" basePath="/icons" size={40} />
-                        </Button>
+                        <div className={styles.brand}>
+                            <Button
+                                className={styles.logoBtn}
+                                variant="ghost"
+                                size="s"
+                                type="button"
+                                onClick={() => go("home")}>
+                                <Icon name="logo" source="url" basePath="/icons" size={40} />
+                            </Button>
+                        </div>
                     </div>
 
                     <Divider />

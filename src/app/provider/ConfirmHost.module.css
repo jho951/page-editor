@@ -1,90 +1,90 @@
 .viewport {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
 }
 
 .backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: rgba(15, 23, 42, 0.28);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 23, 42, 0.24);
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
 }
 
 .dialog {
-  position: relative;
-  width: min(420px, calc(100vw - 32px));
-  padding: 20px;
-  border-radius: 20px;
-  background: rgba(var(--color-white-rgb), 0.95);
-  border: 1px solid var(--color-border);
-  box-shadow:
-    0 24px 64px rgba(var(--color-black-rgb), 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    position: relative;
+    width: min(440px, calc(100vw - 32px));
+    padding: 24px;
+    border-radius: 28px;
+    background: rgba(var(--color-white-rgb), 0.86);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow-lg);
+    backdrop-filter: blur(26px) saturate(1.2);
+    -webkit-backdrop-filter: blur(26px) saturate(1.2);
 }
 
 .copy {
-  display: grid;
-  gap: 8px;
+    display: grid;
+    gap: 8px;
 }
 
 .title {
-  margin: 0;
-  color: var(--color-heading);
-  font-size: 18px;
-  line-height: 1.3;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--color-heading);
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.04em;
 }
 
 .message {
-  margin: 0;
-  color: rgba(var(--color-text-rgb), 0.72);
-  font-size: 14px;
-  line-height: 1.6;
+    margin: 0;
+    color: rgba(var(--color-text-rgb), 0.72);
+    font-size: 1.4rem;
+    line-height: 1.65;
 }
 
 .actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
 }
 
 .cancelButton,
 .confirmButton {
-  min-width: 84px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: rgba(var(--color-white-rgb), 0.88);
-  color: rgba(var(--color-text-rgb), 0.88);
-  box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.06);
-  font-size: 13px;
-  font-weight: 700;
+    min-width: 92px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    background: rgba(var(--color-white-rgb), 0.8);
+    color: rgba(var(--color-heading-rgb), 0.86);
+    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.05);
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
 .confirmButtonDanger {
-  background: rgba(208, 73, 58, 0.1);
-  border-color: rgba(208, 73, 58, 0.22);
-  color: rgba(178, 43, 29, 0.96);
+    background: rgba(var(--color-danger-rgb), 0.1);
+    border-color: rgba(var(--color-danger-rgb), 0.22);
+    color: rgba(var(--color-danger-rgb), 0.96);
 }
 
 @media (max-width: 768px) {
-  .viewport {
-    padding: 16px;
-    align-items: flex-end;
-  }
+    .viewport {
+        padding: 16px;
+        align-items: flex-end;
+    }
 
-  .dialog {
-    width: 100%;
-    border-radius: 18px;
-  }
+    .dialog {
+        width: 100%;
+        border-radius: 24px;
+    }
 }

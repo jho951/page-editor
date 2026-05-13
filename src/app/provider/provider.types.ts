@@ -5,11 +5,13 @@
 import React from "react";
 
 export type Theme = "light" | "dark";
+export type ThemePreference = Theme | "system";
 
 export interface ThemeContextValue {
-    theme: Theme;
+    theme: ThemePreference;
+    resolvedTheme: Theme;
     toggleTheme: () => void;
-    setTheme: (theme: Theme) => void;
+    setTheme: (theme: ThemePreference) => void;
 }
 
 export type ProvidersProps = {

@@ -44,19 +44,30 @@ function ContextMenuHost(): React.ReactElement | null {
     if (!menu.open || !menuRef.current) return;
 
     const rect = menuRef.current.getBoundingClientRect();
-
     const screenW = window.innerWidth;
-
     const screenH = window.innerHeight;
-    let x = menu.x - rect.width;
-    let y = menu.y;
+    const viewportPadding = 12;
+    const anchorGap = 8;
 
-    if (x < 12) x = 12;
-    if (x + rect.width > screenW) x = screenW - rect.width - 12;
-    if (y + rect.height > screenH) y = screenH - rect.height - 12;
+    const spaceRight = screenW - menu.x - viewportPadding;
+    const spaceLeft = menu.x - viewportPadding;
+    const spaceBottom = screenH - menu.y - viewportPadding;
+    const spaceTop = menu.y - viewportPadding;
+
+    const shouldOpenRight = spaceRight >= rect.width + anchorGap || spaceRight >= spaceLeft;
+    const shouldOpenBelow = spaceBottom >= rect.height + anchorGap || spaceBottom >= spaceTop;
+
+    let x = shouldOpenRight ? menu.x + anchorGap : menu.x - rect.width - anchorGap;
+    let y = shouldOpenBelow ? menu.y + anchorGap : menu.y - rect.height - anchorGap;
+
+    if (x < viewportPadding) x = viewportPadding;
+    if (x + rect.width > screenW - viewportPadding) x = screenW - rect.width - viewportPadding;
+    if (y < viewportPadding) y = viewportPadding;
+    if (y + rect.height > screenH - viewportPadding) y = screenH - rect.height - viewportPadding;
 
     menuRef.current.style.left = `${x}px`;
     menuRef.current.style.top = `${y}px`;
+    menuRef.current.style.transformOrigin = `${shouldOpenRight ? "left" : "right"} ${shouldOpenBelow ? "top" : "bottom"}`;
     menuRef.current.style.visibility = "visible";
   }, [menu]);
 

@@ -3,7 +3,7 @@
     height: var(--size-app-height);
     display: grid;
     grid-template-columns: var(--side-width) 1fr;
-    background: linear-gradient(180deg, #ffffff 0%, var(--color-bg) 52%, var(--color-bg-gray) 100%);
+    background: transparent;
     overflow: hidden;
 }
 
@@ -18,8 +18,8 @@
     overflow: hidden;
     position: relative;
     padding: var(--layout-main-padding);
+    gap: 14px;
 }
-
 
 .content {
     height: 100%;
@@ -32,8 +32,9 @@
     position: fixed;
     inset: 0;
     z-index: 1200;
-    background: rgba(248, 248, 246, 0.98);
-    backdrop-filter: blur(18px);
+    background: rgba(244, 247, 252, 0.86);
+    backdrop-filter: blur(26px);
+    -webkit-backdrop-filter: blur(26px);
 }
 
 .mobileOverlayPanel {
@@ -42,8 +43,8 @@
     display: flex;
     flex-direction: column;
     background:
-        radial-gradient(circle at top left, rgba(205, 216, 255, 0.34), transparent 32%),
-        linear-gradient(180deg, #ffffff 0%, #f6f5f2 100%);
+        radial-gradient(circle at top left, rgba(var(--color-accent-rgb), 0.34), transparent 26%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(239, 244, 251, 0.94) 100%);
     animation: slideInFromLeft 220ms ease;
 }
 
@@ -51,33 +52,37 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-18) var(--space-16) var(--space-12);
+    padding: 18px 16px 12px;
 }
 
 .mobileOverlayLogo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 4rem;
-    height: 4rem;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: rgba(var(--color-white-rgb), 0.72);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow-sm);
 }
 
 .mobileOverlayClose {
     position: relative;
-    width: 2.6rem;
-    min-width: 2.6rem;
-    height: 2.6rem;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
     border: 0;
     border-radius: 999px;
-    background: rgba(var(--color-white-rgb), 0.88);
-    box-shadow: 0 12px 28px rgba(var(--color-black-rgb), 0.08);
+    background: rgba(var(--color-white-rgb), 0.86);
+    box-shadow: var(--surface-shadow-sm);
 }
 
 .mobileOverlayCloseBar {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 1rem;
+    width: 16px;
     height: 1.5px;
     border-radius: 999px;
     background: rgba(var(--color-text-rgb), 0.78);
@@ -114,10 +119,10 @@
 
     .main {
         min-height: 0;
-        padding: var(--space-10);
+        padding: 12px;
     }
 
     .content {
-        padding: var(--space-16) var(--space-6) var(--space-24);
+        padding: 8px 4px 28px;
     }
 }

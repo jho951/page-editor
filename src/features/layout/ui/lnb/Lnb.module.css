@@ -6,17 +6,23 @@
     height: 100%;
     padding: var(--lnb-padding);
     overflow: hidden;
-    background: var(--lnb-background);
-    border-right: 1px solid var(--color-border);
+    background: rgba(var(--color-white-rgb), 0.64);
+    border-right: 1px solid var(--surface-border);
+    box-shadow:
+        inset -1px 0 0 rgba(var(--color-white-rgb), 0.52),
+        18px 0 38px rgba(var(--color-black-rgb), 0.04);
+    backdrop-filter: blur(26px) saturate(1.15);
+    -webkit-backdrop-filter: blur(26px) saturate(1.15);
     gap: var(--lnb-gap);
 }
 
 .overlayMode {
     flex: 1;
     min-height: 0;
-    padding: var(--space-8) var(--space-16) var(--space-18);
+    padding: 12px 16px 20px;
     border-right: 0;
     background: transparent;
+    box-shadow: none;
 }
 
 .topRow {
@@ -24,16 +30,49 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: var(--space-8);
+    gap: 8px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
 }
 
 .logoBtn {
     display: inline-flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     width: var(--lnb-logo-size);
     height: var(--lnb-logo-size);
-    padding: var(--space-0);
+    padding: 0;
+    border-radius: 18px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    background: rgba(var(--color-white-rgb), 0.8);
+    box-shadow: 0 8px 22px rgba(var(--color-black-rgb), 0.06);
+}
+
+.brandCopy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.brandTitle {
+    color: var(--color-heading);
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.brandMeta {
+    color: rgba(var(--color-text-rgb), 0.58);
+    font-size: 1.15rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .treeArea {
@@ -43,37 +82,51 @@
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
-    padding-right: var(--space-4);
+    gap: 6px;
+    padding-right: 4px;
 }
 
 .trashPane {
     flex: 0 0 auto;
-    margin-bottom: var(--space-6);
+    margin-bottom: 6px;
 }
 
 .trashBlock {
     width: 100%;
-    border: 1px solid transparent;
-    border-radius: var(--base-radius);
-    padding: var(--space-10) var(--space-12);
+    border: 1px solid rgba(var(--color-black-rgb), 0.05);
+    border-radius: 20px;
+    padding: 12px 14px;
     min-height: var(--lnb-item-min-height);
     text-align: left;
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+    background: rgba(var(--color-white-rgb), 0.7);
+    box-shadow: 0 10px 24px rgba(var(--color-black-rgb), 0.04);
+    transition:
+        background 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.trashBlock:hover {
+    background: rgba(var(--color-white-rgb), 0.86);
+    border-color: rgba(var(--color-primary-rgb), 0.16);
+    box-shadow: 0 14px 30px rgba(var(--color-black-rgb), 0.06);
+    transform: translateY(-1px);
 }
 
 .trashBlockActive {
-    background: rgba(var(--color-primary-rgb), 0.12);
-    border-color: rgba(var(--color-primary-rgb), 0.24);
+    background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.14), rgba(var(--color-primary-rgb), 0.08));
+    border-color: rgba(var(--color-primary-rgb), 0.22);
+    box-shadow: 0 16px 30px rgba(var(--color-primary-rgb), 0.12);
 }
 
 .trashLeft {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-10);
+    gap: 10px;
     min-width: 0;
 }
 
@@ -87,27 +140,31 @@
 }
 
 .trashTitle {
-    font-size: var(--font-xs);
+    font-size: 1.3rem;
     line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: rgba(var(--color-heading-rgb), 0.9);
+    font-weight: 600;
 }
 
 @media (max-width: 840px) {
     .lnbWrap {
-        max-height: 168px;
-        padding: var(--space-10) var(--space-12);
+        max-height: 198px;
+        padding: 12px 14px;
         border-right: 0;
-        border-bottom: 1px solid var(--color-border);
-        gap: var(--space-8);
+        border-bottom: 1px solid var(--surface-border);
+        gap: 10px;
+        border-radius: 24px;
+        box-shadow: var(--surface-shadow-sm);
     }
 
     .overlayMode {
         max-height: none;
-        padding: var(--space-6) var(--space-4) var(--space-20);
+        padding: 10px 8px 20px;
         border-bottom: 0;
-        gap: var(--space-12);
+        gap: 12px;
     }
 
     .topRow {
@@ -115,33 +172,36 @@
     }
 
     .logoBtn {
-        width: var(--size-42);
-        height: var(--size-42);
+        width: 44px;
+        height: 44px;
+    }
+
+    .brandMeta {
+        display: none;
     }
 
     .treeArea {
         flex-direction: row;
         overflow-x: auto;
         overflow-y: hidden;
-        padding: 0 0 var(--space-4);
-        gap: var(--space-6);
+        padding: 0 0 4px;
+        gap: 8px;
     }
 
     .overlayMode .treeArea {
         flex-direction: column;
         overflow-x: hidden;
         overflow-y: auto;
-        padding: 0 var(--space-4) var(--space-12) 0;
-        gap: var(--space-4);
+        padding: 0 4px 12px 0;
+        gap: 4px;
     }
 
     .treeArea > * {
         flex: 0 0 auto;
-        min-width: 172px;
+        min-width: 188px;
     }
 
     .overlayMode .treeArea > * {
-        flex: 0 0 auto;
         min-width: 0;
     }
 
@@ -151,6 +211,6 @@
 
     .trashBlock {
         min-height: var(--control-height-md);
-        padding: var(--space-8) var(--space-10);
+        padding: 10px 12px;
     }
 }

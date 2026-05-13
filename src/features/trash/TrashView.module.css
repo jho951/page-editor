@@ -1,126 +1,130 @@
 .page {
-  max-width: 1120px;
-  margin: 0 auto;
-  display: grid;
-  gap: var(--space-16);
+    max-width: var(--layout-page-width);
+    margin: 0 auto;
+    display: grid;
+    gap: var(--layout-page-gap);
+    padding-bottom: var(--layout-page-padding-bottom);
 }
 
 .detailPage {
-  height: 100%;
+    height: 100%;
 }
 
 .section {
-  display: grid;
-  gap: var(--space-14);
-  padding: var(--layout-section-padding);
-  border-radius: var(--base-radius);
-  background: rgba(var(--color-white-rgb), 0.36);
-  border: 1px solid var(--color-border-light);
+    display: grid;
+    gap: 16px;
+    padding: 24px;
+    border-radius: 30px;
+    background: rgba(var(--color-white-rgb), 0.72);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow-md);
+    backdrop-filter: blur(24px) saturate(1.18);
+    -webkit-backdrop-filter: blur(24px) saturate(1.18);
 }
 
 .sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-12);
-  min-height: var(--size-32);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 32px;
 }
 
 .sectionTitle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: rgba(var(--color-text-rgb), 0.75);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-heading);
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
 }
 
 .cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--space-18);
-  align-items: start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+    align-items: start;
 }
 
 .list {
-  display: grid;
-  gap: 12px;
-  align-items: start;
+    display: grid;
+    gap: 12px;
+    align-items: start;
 }
 
 .empty {
-  grid-column: 1 / -1;
-  padding: var(--space-32);
-  border: 1px dashed var(--color-border-heavy);
-  border-radius: var(--base-radius);
-  text-align: center;
-  color: rgba(var(--color-text-rgb), 0.52);
-  font-size: var(--font-xs);
-  background: rgba(var(--color-white-rgb), 0.62);
+    grid-column: 1 / -1;
+    padding: 32px;
+    border: 1px dashed rgba(var(--color-black-rgb), 0.12);
+    border-radius: 24px;
+    text-align: center;
+    color: rgba(var(--color-text-rgb), 0.56);
+    font-size: 1.3rem;
+    background: rgba(var(--color-white-rgb), 0.56);
 }
 
 .detailOnlyPane {
-  height: 100%;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 .detailHeader {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .detailTitle {
-  margin: 0;
-  font-size: var(--font-md);
-  font-weight: 600;
+    margin: 0;
+    font-size: var(--font-md);
+    font-weight: 600;
 }
 
 .detailMeta {
-  margin-top: var(--space-8);
-  font-size: var(--font-xs);
-  color: rgba(var(--color-text-rgb), 0.54);
+    margin-top: 8px;
+    font-size: var(--font-xs);
+    color: rgba(var(--color-text-rgb), 0.54);
 }
 
 .detailDesc {
-  margin-top: var(--space-14);
-  font-size: var(--font-xs);
-  line-height: 1.6;
-  color: rgba(var(--color-text-rgb), 0.76);
+    margin-top: 14px;
+    font-size: var(--font-xs);
+    line-height: 1.6;
+    color: rgba(var(--color-text-rgb), 0.76);
 }
 
 .docBody {
-  margin-top: var(--space-16);
-  padding-top: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  overflow: auto;
+    margin-top: 16px;
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: auto;
 }
 
 .emptyDetail {
-  margin: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
-  color: rgba(var(--color-text-rgb), 0.54);
-  font-size: var(--font-xs);
+    margin: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(var(--color-text-rgb), 0.54);
+    font-size: var(--font-xs);
 }
 
 @media (max-width: 768px) {
-  .page {
-    gap: var(--space-22);
-  }
+    .page {
+        gap: var(--layout-page-gap-mobile);
+    }
 
-  .section {
-    padding: var(--layout-section-padding-mobile);
-    border-radius: var(--base-radius);
-  }
+    .section {
+        padding: 18px;
+        border-radius: 24px;
+    }
 }

@@ -2,8 +2,8 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: var(--space-16);
-    padding: var(--space-8) var(--space-0) var(--space-4);
+    gap: 18px;
+    padding: 6px 4px 2px;
 }
 
 .titleWrap {
@@ -14,18 +14,18 @@
 
 .title {
     margin: 0;
-    font-size: 2.2rem;
-    line-height: 1.06;
+    font-size: clamp(3rem, 2.5vw, 5rem);
+    line-height: 0.98;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: -0.07em;
     color: var(--color-heading);
 }
 
 .subtitle {
     margin: 0;
-    font-size: 1.3rem;
-    line-height: 1.4;
-    color: rgba(var(--color-text-rgb), 0.54);
+    font-size: 1.35rem;
+    line-height: 1.5;
+    color: rgba(var(--color-text-rgb), 0.66);
 }
 
 .headerActions {
@@ -41,22 +41,20 @@
     gap: 4px;
     padding: 4px;
     border-radius: 999px;
-    background: rgba(var(--color-white-rgb), 0.7);
-    border: 1px solid var(--color-border);
-    box-shadow:
-        0 18px 34px rgba(var(--color-black-rgb), 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.76);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(var(--color-white-rgb), 0.72);
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    box-shadow: var(--surface-shadow-sm);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .viewToggleButton {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
     padding: 0;
     border: 0;
     border-radius: 999px;
@@ -70,15 +68,14 @@
 }
 
 .viewToggleButton:hover {
-    color: rgba(var(--color-text-rgb), 0.86);
+    color: rgba(var(--color-heading-rgb), 0.9);
+    transform: translateY(-1px);
 }
 
 .viewToggleButtonActive {
-    background: rgba(var(--color-white-rgb), 0.94);
-    color: rgba(var(--color-text-rgb), 0.92);
-    box-shadow:
-        0 8px 16px rgba(var(--color-black-rgb), 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: rgba(var(--color-white-rgb), 0.9);
+    color: rgba(var(--color-heading-rgb), 0.92);
+    box-shadow: 0 6px 16px rgba(var(--color-black-rgb), 0.08);
 }
 
 .toggleIcon {
@@ -119,53 +116,21 @@
 
 @media (max-width: 768px) {
     .header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--space-10);
-    }
-
-    .headerActions {
-        justify-content: flex-end;
+        align-items: flex-start;
+        gap: 10px;
     }
 
     .title {
-        font-size: 2.4rem;
-        line-height: 1.08;
+        font-size: 3.1rem;
     }
 
     .subtitle {
-        font-size: 1.2rem;
-        line-height: 1.35;
-    }
-
-    .viewToggle {
-        gap: 3px;
-        padding: 3px;
+        font-size: 1.25rem;
     }
 
     .viewToggleButton {
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
-    }
-
-    .toggleIconList {
-        width: 12px;
-        gap: 2px;
-    }
-
-    .toggleIconList span {
-        width: 12px;
-    }
-
-    .toggleIconGrid {
-        width: 12px;
-        height: 12px;
-    }
-
-    .toggleIconGrid span {
-        width: 5px;
-        height: 5px;
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
     }
 }

@@ -24,6 +24,7 @@ import type { AuthGateProps } from "@features/auth/ui/AuthGate.types.ts";
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function AuthGate({ children }: AuthGateProps): React.ReactElement {
+  const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === "true";
   const location = useLocation();
   const initialized = useAppSelector(selectAuthInitialized);
   const status = useAppSelector(selectAuthStatus);
@@ -32,9 +33,13 @@ function AuthGate({ children }: AuthGateProps): React.ReactElement {
   const nextPath = buildLocationNextPath(location);
 
   useEffect(() => {
-    if (!initialized || status === "loading" || isAuthenticated) return;
+    if (bypassAuth || !initialized || status === "loading" || isAuthenticated) return;
     redirectToSsoStart(nextPath);
-  }, [initialized, isAuthenticated, nextPath, status]);
+  }, [bypassAuth, initialized, isAuthenticated, nextPath, status]);
+
+  if (bypassAuth) {
+    return children;
+  }
 
   if (!initialized || status === "loading") {
     return <div style={{ padding: 32 }}>인증 상태를 확인하는 중입니다...</div>;

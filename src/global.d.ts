@@ -10,6 +10,7 @@ interface ImportMetaEnv {
     readonly VITE_START_FRONTEND_URL?: string;
     readonly VITE_POST_AUTH_REDIRECT_URL?: string;
     readonly VITE_ENABLE_REMOTE_DOCS?: string;
+    readonly VITE_BYPASS_AUTH?: string;
 }
 
 interface ImportMeta {

@@ -3,34 +3,36 @@
  */
 import React, { useEffect, useState } from "react";
 import { ThemeContext } from "@app/provider/ThemeContext.ts";
-import type { ProvidersProps, Theme, ThemeContextValue } from "@app/provider/provider.types.ts";
+import type { ProvidersProps, Theme, ThemeContextValue, ThemePreference } from "@app/provider/provider.types.ts";
 
 /**
  * 선택한 테마를 저장할 localStorage 키입니다.
  */
 const THEME_STORAGE_KEY = "admin-theme";
 
-/**
- * 저장된 값과 OS 설정을 기준으로 초기 테마를 계산합니다.
- * @returns 초기 테마 값을 반환합니다.
- */
-const getInitialTheme = (): Theme => {
+function resolveSystemTheme(): Theme {
     if (typeof window === "undefined") {
         return "light";
     }
 
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/**
+ * 저장된 값과 OS 설정을 기준으로 초기 테마를 계산합니다.
+ * @returns 초기 테마 값을 반환합니다.
+ */
+const getInitialTheme = (): ThemePreference => {
+    if (typeof window === "undefined") {
+        return "system";
+    }
+
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") {
+    if (stored === "system" || stored === "light" || stored === "dark") {
         return stored;
     }
 
-    // 2) 시스템 설정
-
-    const prefersDark = window.matchMedia?.(
-        "(prefers-color-scheme: dark)",
-    ).matches;
-
-    return prefersDark ? "dark" : "light";
+    return "system";
 };
 
 /**
@@ -40,9 +42,12 @@ const getInitialTheme = (): Theme => {
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 const ThemeProvider: React.FC<ProvidersProps> = ({ children }) => {
-    const [theme, setThemeState] = useState<Theme>(() => getInitialTheme());
+    const [theme, setThemeState] = useState<ThemePreference>(() => getInitialTheme());
+    const [systemTheme, setSystemTheme] = useState<Theme>(() => resolveSystemTheme());
 
-    const setTheme = (next: Theme) => {
+    const resolvedTheme: Theme = theme === "system" ? systemTheme : theme;
+
+    const setTheme = (next: ThemePreference) => {
         setThemeState(next);
         if (typeof window !== "undefined") {
             window.localStorage.setItem(THEME_STORAGE_KEY, next);
@@ -50,8 +55,20 @@ const ThemeProvider: React.FC<ProvidersProps> = ({ children }) => {
     };
 
     const toggleTheme = () => {
-        setTheme(theme === "light" ? "dark" : "light");
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
     };
+
+    useEffect(() => {
+        if (theme !== "system" || typeof window === "undefined") return;
+
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const onChange = (event: MediaQueryListEvent) => {
+            setSystemTheme(event.matches ? "dark" : "light");
+        };
+
+        mediaQuery.addEventListener("change", onChange);
+        return () => mediaQuery.removeEventListener("change", onChange);
+    }, [theme]);
 
     useEffect(() => {
         if (typeof document === "undefined") return;
@@ -63,15 +80,16 @@ const ThemeProvider: React.FC<ProvidersProps> = ({ children }) => {
             root.classList.add("theme-loaded");
         }
 
-        if (theme === "dark") {
+        if (resolvedTheme === "dark") {
             root.classList.add("dark");
         } else {
             root.classList.remove("dark");
         }
-    }, [theme]);
+    }, [resolvedTheme]);
 
     const value: ThemeContextValue = {
         theme,
+        resolvedTheme,
         toggleTheme,
         setTheme,
     };

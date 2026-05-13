@@ -1,185 +1,198 @@
 .node {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .row {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  border: 0;
-  background: transparent;
-  color: var(--color-text, #111827);
-  border-radius: var(--space-8);
-  padding: var(--space-6) var(--space-8);
-  padding-left: calc(var(--space-8) + var(--level, 0) * var(--space-12));
-  min-height: var(--space-34);
-  cursor: pointer;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text, #111827);
+    border-radius: 18px;
+    padding: 10px 12px;
+    padding-left: calc(12px + var(--level, 0) * 14px);
+    min-height: 42px;
+    cursor: pointer;
+    transition:
+        background 140ms ease,
+        border-color 140ms ease,
+        box-shadow 140ms ease,
+        transform 140ms ease,
+        color 140ms ease;
 }
 
 .left {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
-  min-width: 0;
-  flex: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
 }
 
 .nodeIcon {
-  flex: 0 0 auto;
-  opacity: 1;
-  color: currentColor;
+    flex: 0 0 auto;
+    opacity: 1;
+    color: currentColor;
 }
 
 .iconSlot {
-  width: var(--size-20);
-  height: var(--size-20);
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-  flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    flex: 0 0 auto;
 }
 
 .nodeIconWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  transition: opacity 120ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    transition: opacity 120ms ease;
 }
 
 .iconSlot:empty::before {
-  content: attr(data-fallback);
-  font-size: var(--font-xs);
-  font-weight: 700;
-  line-height: 1;
+    content: attr(data-fallback);
+    font-size: var(--font-xs);
+    font-weight: 700;
+    line-height: 1;
 }
 
 .row:hover {
-  background: rgba(var(--color-primary-rgb), 0.08);
+    background: rgba(var(--color-white-rgb), 0.72);
+    border-color: rgba(var(--color-black-rgb), 0.05);
+    box-shadow: 0 8px 22px rgba(var(--color-black-rgb), 0.04);
+    transform: translateY(-1px);
 }
 
 .dragging {
-  opacity: 0.46;
+    opacity: 0.46;
 }
 
 .dropBefore {
-  box-shadow: inset 0 2px 0 rgba(var(--color-primary-rgb), 0.92);
+    box-shadow: inset 0 2px 0 rgba(var(--color-primary-rgb), 0.88);
 }
 
 .dropAfter {
-  box-shadow: inset 0 -2px 0 rgba(var(--color-primary-rgb), 0.92);
+    box-shadow: inset 0 -2px 0 rgba(var(--color-primary-rgb), 0.88);
 }
 
 .dropInside {
-  background: rgba(var(--color-primary-rgb), 0.12);
-  outline: 1px solid rgba(var(--color-primary-rgb), 0.24);
+    background: rgba(var(--color-primary-rgb), 0.08);
+    border-color: rgba(var(--color-primary-rgb), 0.18);
 }
 
 .rowHasChevron:hover .nodeIconWrap,
 .rowHasChevron:focus-within .nodeIconWrap {
-  opacity: 0;
+    opacity: 0;
 }
 
 .active {
-  background: rgba(var(--color-primary-rgb), 0.12);
-  color: var(--color-heading);
+    background: linear-gradient(180deg, rgba(var(--color-primary-rgb), 0.12), rgba(var(--color-primary-rgb), 0.08));
+    color: var(--color-heading);
+    border-color: rgba(var(--color-primary-rgb), 0.16);
+    box-shadow: 0 10px 24px rgba(var(--color-primary-rgb), 0.08);
 }
 
 .label {
-  font-size: var(--font-xs);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    font-size: 1.3rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 600;
 }
 
 .chevron {
-  width: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-xs);
-  color: rgba(0, 0, 0, 0.45);
-  transform: rotate(0deg);
-  transform-origin: center;
-  transition: transform 140ms ease;
+    width: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-xs);
+    color: rgba(var(--color-text-rgb), 0.45);
+    transform: rotate(0deg);
+    transform-origin: center;
+    transition: transform 140ms ease;
 }
 
 .chevronBtn {
-  width: var(--size-24);
-  height: var(--size-24);
-  min-width: var(--size-24);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0.82;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0.82;
 }
 
 .chevronBtnInSlot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-width: 100%;
-  opacity: 0;
-  transition: opacity 120ms ease;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    opacity: 0;
+    transition: opacity 120ms ease;
 }
 
 .rowHasChevron:hover .chevronBtnInSlot,
 .rowHasChevron:focus-within .chevronBtnInSlot,
 .chevronBtnOpen.chevronBtnInSlot {
-  opacity: 1;
+    opacity: 1;
 }
 
 .chevronBtn:hover {
-  background: rgba(var(--color-primary-rgb), 0.08);
+    background: rgba(var(--color-black-rgb), 0.05);
 }
 
 .chevronBtnOpen {
-  opacity: 1;
+    opacity: 1;
 }
 
 .chevronOpen {
-  transform: rotate(90deg);
+    transform: rotate(90deg);
 }
 
 .children {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
 }
 
 .empty {
-  color: rgba(var(--color-text-rgb), 0.58);
+    color: rgba(var(--color-text-rgb), 0.58);
 }
 
 @media (max-width: 840px) {
-  .children {
-    display: none;
-  }
+    .children {
+        display: none;
+    }
 
-  .row {
-    min-height: var(--control-height-md);
-    padding-left: var(--space-8);
-    border: 1px solid transparent;
-    background: rgba(var(--color-white-rgb), 0.64);
-  }
+    .row {
+        min-height: 40px;
+        padding-left: 12px;
+        border: 1px solid rgba(var(--color-black-rgb), 0.05);
+        background: rgba(var(--color-white-rgb), 0.66);
+        box-shadow: 0 6px 18px rgba(var(--color-black-rgb), 0.04);
+    }
 
-  .active {
-    border-color: rgba(var(--color-primary-rgb), 0.22);
-  }
+    .active {
+        border-color: rgba(var(--color-primary-rgb), 0.22);
+    }
 }

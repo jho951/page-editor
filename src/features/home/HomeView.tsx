@@ -2,7 +2,7 @@
  * Home View 화면을 구성하는 뷰 컴포넌트입니다.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useDeferredValue, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "@jho951/ui-components";
 import { useAppDispatch } from "@app/store/hooks.ts";
@@ -18,14 +18,29 @@ import { movePageToTrashRemote } from "@features/layout/state/layout.slice.ts";
 
 import styles from "./HomeView.module.css";
 
-function toCardItem(id: string, title: string, createdAt?: string): DocCardItem {
+const DOC_ACCENTS = ["#b7ccff", "#c9d8ff", "#d6e3ff", "#a9c4ff"];
+
+function toCardItem(id: string, title: string, createdAt?: string, index = 0): DocCardItem {
     return {
         id,
         title,
-        accent: "#D7D7D7",
+        accent: DOC_ACCENTS[index % DOC_ACCENTS.length],
         kind: "documents",
         createdAt,
     };
+}
+
+function buildSpotlightPreview(preview?: DocCardPreviewItem[]): string {
+    const text = (preview ?? [])
+        .map((item) => item.text.trim())
+        .filter(Boolean)
+        .join(" ");
+
+    if (!text) {
+        return "아직 본문 미리보기가 없습니다. 새 문서를 만들어 첫 아이디어를 적어보세요.";
+    }
+
+    return text.length > 144 ? `${text.slice(0, 144).trim()}...` : text;
 }
 
 /**
@@ -41,6 +56,7 @@ function HomeView(): React.ReactElement {
     const [previewStateById, setPreviewStateById] = useState<Record<string, "loading" | "ready">>({});
     const [loading, setLoading] = useState<boolean>(catalogDocs.length === 0);
     const [viewMode, setViewMode] = useState<DocumentsViewMode>("grid");
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         let cancelled = false;
@@ -57,7 +73,7 @@ function HomeView(): React.ReactElement {
                         const rightTime = right.updatedAt ? Date.parse(right.updatedAt) : 0;
                         return rightTime - leftTime;
                     })
-                    .map((document) => toCardItem(document.id, document.title, document.createdAt));
+                    .map((document, index) => toCardItem(document.id, document.title, document.createdAt, index));
                 replaceCatalog("documents", items);
                 setCatalogDocs(items);
             } catch {
@@ -75,6 +91,7 @@ function HomeView(): React.ReactElement {
     }, []);
 
     const previewDocIds = catalogDocs.map((doc) => doc.id);
+    const deferredSearchQuery = useDeferredValue(searchQuery);
 
     useEffect(() => {
         const pendingIds = previewDocIds.filter((id) => previewStateById[id] == null);
@@ -122,6 +139,23 @@ function HomeView(): React.ReactElement {
             cancelled = true;
         };
     }, [previewDocIds, previewStateById]);
+
+    const normalizedSearch = deferredSearchQuery.trim().toLocaleLowerCase();
+
+    const filteredDocs = normalizedSearch
+        ? catalogDocs.filter((doc) => {
+            const previewText = (previewById[doc.id] ?? [])
+                .map((item) => item.text)
+                .join(" ")
+                .toLocaleLowerCase();
+
+            return doc.title.toLocaleLowerCase().includes(normalizedSearch) || previewText.includes(normalizedSearch);
+        })
+        : catalogDocs;
+
+    const spotlightDoc = filteredDocs[0] ?? catalogDocs[0] ?? null;
+    const spotlightPreview = spotlightDoc ? buildSpotlightPreview(previewById[spotlightDoc.id]) : "문서를 불러오면 가장 최근 작업이 이곳에 표시됩니다.";
+    const activeViewLabel = viewMode === "grid" ? "카드 뷰" : "리스트 뷰";
 
     const onCreatePage = () => {
         dispatch(createChildPage({ parentId: "my" })).then((action) => {
@@ -190,26 +224,76 @@ function HomeView(): React.ReactElement {
     return (
         <div className={styles.page}>
             <DocumentsPageHeader
-                title="전체 문서"
+                title="안녕하세요."
                 viewMode={viewMode}
                 onChangeViewMode={setViewMode}
             />
 
-            <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                    <div className={styles.sectionTitle}>저장된 문서</div>
+            <section className={styles.spotlight}>
+                <div className={styles.spotlightContent}>
+                    <span className={styles.kicker}>Spotlight</span>
+                    <h3 className={styles.spotlightTitle}>
+                        {spotlightDoc ? spotlightDoc.title : "새 문서에서 작업을 시작해 보세요."}
+                    </h3>
+                    <p className={styles.spotlightText}>{spotlightPreview}</p>
+                </div>
+                <div className={styles.spotlightActions}>
                     <button
                         type="button"
-                        className={styles.addButton}
-                        onClick={onCreatePage}
-                        aria-label="새 문서 생성"
-                        title="새 문서 생성"
+                        className={styles.spotlightPrimary}
+                        onClick={() => {
+                            if (spotlightDoc) {
+                                navigate(`/doc/${spotlightDoc.id}`);
+                                return;
+                            }
+                            onCreatePage();
+                        }}
                     >
-                        <Icon name="plus" source="url" basePath="/icons" size={16} />
+                        {spotlightDoc ? "최근 문서 열기" : "첫 문서 만들기"}
+                    </button>
+                    <button type="button" className={styles.spotlightSecondary} onClick={onCreatePage}>
+                        새 초안 추가
                     </button>
                 </div>
+            </section>
+
+            <section className={styles.section}>
+                <div className={styles.sectionHeader}>
+                    <div className={styles.sectionHeaderLeft}>
+                        <div>
+                            <div className={styles.sectionEyebrow}>Document Catalog</div>
+                            <div className={styles.sectionTitle}>저장된 문서</div>
+                        </div>
+                        <div className={styles.metaRow}>
+                            <span className={styles.metaPill}>
+                                {filteredDocs.length.toLocaleString("ko-KR")}개 표시
+                            </span>
+                            <span className={styles.metaPill}>{activeViewLabel}</span>
+                        </div>
+                    </div>
+                    <div className={styles.sectionActions}>
+                        {searchQuery.trim() ? (
+                            <button
+                                type="button"
+                                className={styles.clearButton}
+                                onClick={() => setSearchQuery("")}
+                            >
+                                검색 지우기
+                            </button>
+                        ) : null}
+                        <button
+                            type="button"
+                            className={styles.addButton}
+                            onClick={onCreatePage}
+                            aria-label="새 문서 생성"
+                            title="새 문서 생성"
+                        >
+                            <Icon name="plus" source="url" basePath="/icons" size={16} />
+                        </button>
+                    </div>
+                </div>
                 <div className={viewMode === "list" ? styles.list : styles.cards}>
-                    {catalogDocs.map((doc) => (
+                    {filteredDocs.map((doc) => (
                         <div key={doc.id} onContextMenu={(event) => onDocumentContextMenu(event, doc)}>
                             <DocumentCard
                                 item={doc}
@@ -220,9 +304,13 @@ function HomeView(): React.ReactElement {
                             />
                         </div>
                     ))}
-                    {catalogDocs.length === 0 && (
+                    {filteredDocs.length === 0 && (
                         <div className={styles.empty}>
-                            {loading ? "문서를 불러오는 중입니다." : "저장된 문서가 없습니다."}
+                            {loading
+                                ? "문서를 불러오는 중입니다."
+                                : searchQuery.trim()
+                                  ? "검색 결과가 없습니다."
+                                  : "저장된 문서가 없습니다."}
                         </div>
                     )}
                 </div>

@@ -15,6 +15,7 @@ import type { AuthBootstrapProps } from "@app/provider/AuthBootstrap.types.ts";
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function AuthBootstrap({ children }: AuthBootstrapProps): React.ReactElement {
+  const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === "true";
   const dispatch = useAppDispatch();
   const initialized = useAppSelector(selectAuthInitialized);
   const status = useAppSelector(selectAuthStatus);
@@ -22,10 +23,14 @@ function AuthBootstrap({ children }: AuthBootstrapProps): React.ReactElement {
   const shouldSkipBootstrap = pathname ? isAuthTransitionPath(pathname) : false;
 
   useEffect(() => {
-    if (shouldSkipBootstrap) return;
+    if (bypassAuth || shouldSkipBootstrap) return;
     if (initialized || status === "loading") return;
     void dispatch(bootstrapAuth());
-  }, [dispatch, initialized, shouldSkipBootstrap, status]);
+  }, [bypassAuth, dispatch, initialized, shouldSkipBootstrap, status]);
+
+  if (bypassAuth) {
+    return <>{children}</>;
+  }
 
   if (!shouldSkipBootstrap && (!initialized || status === "loading")) {
     return <div style={{ padding: 32 }}>인증 상태를 확인하는 중입니다...</div>;

@@ -11,6 +11,18 @@ npm run dev
 로그인 시작 프론트 기본값: `http://localhost:3000`
 인증 완료 후 최종 이동 기본값: `http://localhost:5174`
 
+## 품질 게이트
+
+`editor-page`는 `husky` 기반 `pre-push` 훅으로 아래 검증이 모두 통과해야 push가 진행됩니다.
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+GitHub Actions CD도 이미지 빌드 전에 같은 순서의 quality gate를 한 번 더 수행합니다.
+
 ## Docker 실행
 
 개발 모드(핫리로드):

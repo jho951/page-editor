@@ -1,326 +1,338 @@
 .content {
-  width: min(100%, 1120px);
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  margin: 0 auto;
+    width: 100%;
+    max-width: var(--layout-page-width);
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    margin: 0 auto;
+    padding-bottom: var(--layout-page-padding-bottom);
+    box-sizing: border-box;
 }
 
 .loadingState {
-  align-items: center;
-  justify-content: center;
+    align-items: center;
+    justify-content: center;
 }
 
 .loadingSpinner {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 2px solid rgba(var(--color-text-rgb), 0.12);
-  border-top-color: rgba(var(--color-text-rgb), 0.56);
-  animation: document-detail-spinner 0.72s linear infinite;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 2px solid rgba(var(--color-text-rgb), 0.12);
+    border-top-color: rgba(var(--color-primary-rgb), 0.72);
+    animation: document-detail-spinner 0.72s linear infinite;
 }
 
 .headerRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-18);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
 }
 
 .headerCopy {
-  display: grid;
-  gap: var(--space-10);
-  width: 100%;
-  max-width: 720px;
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    max-width: 720px;
 }
 
 .headerTitleGroup {
-  display: grid;
-  gap: var(--space-8);
+    display: grid;
+    gap: 8px;
 }
 
 .headerLead {
-  margin: 0;
-  color: rgba(var(--color-text-rgb), 0.68);
-  font-size: 13px;
-  line-height: 1.7;
+    margin: 0;
+    color: rgba(var(--color-text-rgb), 0.68);
+    font-size: 13px;
+    line-height: 1.7;
 }
 
 .pageEyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-8);
-  width: fit-content;
-  padding: var(--space-6) var(--space-12);
-  border-radius: 999px;
-  background: rgba(var(--color-primary-rgb), 0.1);
-  border: 1px solid rgba(var(--color-primary-rgb), 0.16);
-  color: var(--color-primary);
-  font-size: 12px;
-  font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.72);
+    border: 1px solid rgba(var(--color-black-rgb), 0.05);
+    color: rgba(var(--color-text-rgb), 0.66);
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .tab {
-  display: inline-flex;
-  align-items: center;
+    display: inline-flex;
+    align-items: center;
 }
 
 .tabIcon {
-  margin: 0;
-  font-size: var(--font-title);
-  line-height: 1.08;
-  font-weight: 700;
-  color: var(--color-heading);
+    margin: 0;
+    font-size: var(--font-title);
+    line-height: 1.02;
+    font-weight: 700;
+    color: var(--color-heading);
 }
 
 .statusRow {
-  padding: var(--space-14) var(--space-18);
-  border-radius: 20px;
-  background: rgba(var(--color-white-rgb), 0.78);
-  border: 1px solid var(--color-border);
-  color: rgba(var(--color-text-rgb), 0.68);
-  font-size: 13px;
-  line-height: 1.6;
+    padding: 14px 18px;
+    border-radius: 22px;
+    background: rgba(var(--color-white-rgb), 0.68);
+    border: 1px solid var(--surface-border);
+    color: rgba(var(--color-text-rgb), 0.68);
+    font-size: 13px;
+    line-height: 1.6;
+    box-shadow: var(--surface-shadow-sm);
 }
 
 .surfacePanel {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--layout-panel-padding-lg);
-  border-radius: 28px;
-  background: rgba(var(--color-white-rgb), 0.92);
-  border: 1px solid var(--color-border);
-  box-shadow:
-    0 18px 44px rgba(var(--color-black-rgb), 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--layout-panel-padding-lg);
+    border-radius: 30px;
+    background: rgba(var(--color-white-rgb), 0.74);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow-md);
 }
 
 .emptyState {
-  display: grid;
-  gap: var(--space-16);
-  justify-items: start;
+    display: grid;
+    gap: 16px;
+    justify-items: start;
 }
 
 .editorStage {
-  flex: 1 1 auto;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-  border-radius: 0;
-  background: transparent;
-  border: 0;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 34px;
+    background: rgba(var(--color-white-rgb), 0.72);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-shadow-lg);
+    backdrop-filter: blur(26px) saturate(1.2);
+    -webkit-backdrop-filter: blur(26px) saturate(1.2);
 }
 
 .editorScrollContainer {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-  border-radius: inherit;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    border-radius: inherit;
+    padding: 0 20px;
 }
 
 .editorCenterView {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  display: flex;
-  justify-content: flex-start;
-  padding: 0 0 96px;
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0 0 var(--layout-editor-bottom-space);
 }
 
 .editorCanvas {
-  width: 100%;
-  min-height: 100%;
-  padding: 0;
+    width: min(100%, 860px);
+    min-height: 100%;
+    padding: 24px 18px 0;
 }
 
 .titleShell {
-  padding: 28px 0 12px;
+    padding: 18px 0 16px;
 }
 
 .titleInput {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--color-heading);
-  font-size: 2.2rem;
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--color-heading);
+    font-size: clamp(3.6rem, 3vw, 5.6rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.07em;
 }
 
 .titleInput::placeholder {
-  color: rgba(var(--color-text-rgb), 0.24);
+    color: rgba(var(--color-text-rgb), 0.24);
 }
 
 .titleError {
-  margin: var(--space-10) 0 0;
-  color: var(--color-danger);
-  font-size: 12px;
-  font-weight: 700;
+    margin: 10px 0 0;
+    color: var(--color-danger);
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .titleDivider {
-  width: 100%;
-  height: 1px;
-  margin: 0 0 18px;
-  background: rgba(var(--color-text-rgb), 0.12);
+    width: 100%;
+    height: 1px;
+    margin: 0 0 20px;
+    background: rgba(var(--color-black-rgb), 0.08);
 }
 
 .editorBody {
-  width: 100%;
+    width: 100%;
 }
 
 .childPages {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 8px 0 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 0 28px;
 }
 
 .childPageShell {
-  position: relative;
+    position: relative;
 }
 
 .childPageShellDragging {
-  opacity: 0.58;
+    opacity: 0.58;
 }
 
 .childPageDropBefore::before,
 .childPageDropAfter::after {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(var(--color-primary-rgb), 0.72);
+    content: "";
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    height: 2px;
+    border-radius: 999px;
+    background: rgba(var(--color-primary-rgb), 0.72);
 }
 
 .childPageDropBefore::before {
-  top: -5px;
+    top: -5px;
 }
 
 .childPageDropAfter::after {
-  bottom: -5px;
+    bottom: -5px;
 }
 
 .childPageBlock {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  border: 1px solid rgba(var(--color-text-rgb), 0.08);
-  border-radius: 14px;
-  background: rgba(var(--color-white-rgb), 0.82);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.05);
+    border-radius: 20px;
+    background: rgba(var(--color-white-rgb), 0.76);
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.04);
+    transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 
 .childPageBlock:hover {
-  background: rgba(var(--color-white-rgb), 0.96);
-  border-color: rgba(var(--color-text-rgb), 0.14);
-  transform: translateY(-1px);
+    background: rgba(var(--color-white-rgb), 0.92);
+    border-color: rgba(var(--color-primary-rgb), 0.14);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(var(--color-black-rgb), 0.05);
 }
 
 .childPageIcon {
-  width: 32px;
-  height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: rgba(var(--color-text-rgb), 0.04);
-  color: rgba(var(--color-text-rgb), 0.68);
-  flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: rgba(var(--color-primary-rgb), 0.76);
+    flex: 0 0 auto;
 }
 
 .childPageCopy {
-  min-width: 0;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 3px;
+    min-width: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
 }
 
 .childPageTitle {
-  color: var(--color-heading);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    color: var(--color-heading);
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .childPagePreview {
-  color: rgba(var(--color-text-rgb), 0.58);
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    color: rgba(var(--color-text-rgb), 0.58);
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .childPageArrow {
-  color: rgba(var(--color-text-rgb), 0.34);
-  font-size: 18px;
-  line-height: 1;
-  flex: 0 0 auto;
+    color: rgba(var(--color-text-rgb), 0.34);
+    font-size: 18px;
+    line-height: 1;
+    flex: 0 0 auto;
 }
 
 .childPageDrag {
-  color: rgba(var(--color-text-rgb), 0.28);
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: -0.08em;
-  flex: 0 0 auto;
-  cursor: grab;
+    color: rgba(var(--color-text-rgb), 0.28);
+    font-size: 13px;
+    line-height: 1;
+    letter-spacing: -0.08em;
+    flex: 0 0 auto;
+    cursor: grab;
 }
 
 @keyframes document-detail-spinner {
-  from {
-    transform: rotate(0deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
 
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 768px) {
-  .content {
-    min-height: auto;
-  }
+    .content {
+        min-height: auto;
+    }
 
-  .editorCenterView {
-    width: 100%;
-    padding: 0 0 48px;
-  }
+    .editorStage {
+        border-radius: 24px;
+    }
 
-  .editorCanvas {
-    width: 100%;
-    padding: 0;
-  }
+    .editorScrollContainer {
+        padding: 0 12px;
+    }
 
-  .titleShell {
-    padding-top: var(--space-12);
-  }
+    .editorCenterView {
+        width: 100%;
+        padding: 0 0 var(--layout-editor-bottom-space-mobile);
+    }
 
-  .titleInput {
-    font-size: 18px;
-  }
+    .editorCanvas {
+        width: 100%;
+        padding: 10px 6px 0;
+    }
 
-  .childPageBlock {
-    padding: 11px 12px;
-    gap: 12px;
-  }
+    .titleShell {
+        padding-top: 12px;
+    }
+
+    .titleInput {
+        font-size: 3.2rem;
+    }
 }

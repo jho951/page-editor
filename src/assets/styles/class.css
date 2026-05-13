@@ -1,13 +1,16 @@
 :root {
     --width: calc(100vw - var(--base-padding));
-    --max-width: 120rem;
+    --max-width: 124rem;
 
-    --base-border: rgba(var(--color-black-rgb), 0.05);
-    --base-radius: 8px;
+    --base-border: rgba(var(--color-black-rgb), 0.06);
+    --base-radius: 24px;
+    --base-radius-sm: 16px;
+    --base-radius-md: 24px;
+    --base-radius-lg: 32px;
 
     --base-padding: 2rem;
 
-    --base-blur: 4px;
+    --base-blur: 22px;
     --base-z-index: 100;
     --base-gap: 1rem;
 
@@ -30,8 +33,11 @@
     --space-32: 32px;
     --space-34: 34px;
     --space-36: 36px;
+    --space-40: 40px;
     --space-44: 44px;
     --space-48: 48px;
+    --space-56: 56px;
+    --space-64: 64px;
 
     --size-14: 14px;
     --size-16: 16px;
@@ -52,60 +58,93 @@
     --control-height-xl: var(--size-44);
     --control-height-2xl: var(--size-48);
 
-    --layout-main-padding: var(--space-12) var(--space-14) var(--space-14) var(--space-0);
-    --layout-content-padding: var(--space-24) var(--space-28) var(--space-36);
-    --layout-section-padding: var(--space-22);
+    --surface-bg: rgba(var(--color-white-rgb), 0.72);
+    --surface-bg-strong: rgba(var(--color-white-rgb), 0.88);
+    --surface-bg-soft: rgba(var(--color-white-rgb), 0.58);
+    --surface-border: rgba(var(--color-black-rgb), 0.08);
+    --surface-border-strong: rgba(var(--color-black-rgb), 0.12);
+    --surface-shadow-sm:
+        0 10px 24px rgba(var(--color-black-rgb), 0.05),
+        0 1px 0 rgba(var(--color-white-rgb), 0.74) inset;
+    --surface-shadow-md:
+        0 18px 44px rgba(var(--color-black-rgb), 0.08),
+        0 1px 0 rgba(var(--color-white-rgb), 0.74) inset;
+    --surface-shadow-lg:
+        0 28px 68px rgba(var(--color-black-rgb), 0.12),
+        0 1px 0 rgba(var(--color-white-rgb), 0.7) inset;
+
+    --layout-main-padding: var(--space-18) var(--space-20) var(--space-20) var(--space-0);
+    --layout-content-padding: var(--space-28) var(--space-32) var(--space-40);
+    --layout-section-padding: var(--space-24);
     --layout-section-padding-mobile: var(--space-18);
-    --layout-panel-padding: var(--space-18);
-    --layout-panel-padding-lg: var(--space-22);
-    --layout-editor-padding: var(--space-26);
+    --layout-panel-padding: var(--space-20);
+    --layout-panel-padding-lg: var(--space-28);
+    --layout-editor-padding: var(--space-32);
+    --layout-page-width: 1240px;
+    --layout-page-gap: var(--space-24);
+    --layout-page-gap-mobile: var(--space-16);
+    --layout-page-padding-bottom: var(--space-24);
+    --layout-editor-bottom-space: var(--space-48);
+    --layout-editor-bottom-space-mobile: var(--space-28);
 
-    --lnb-padding: var(--space-18) var(--space-14) var(--space-16) var(--space-18);
-    --lnb-background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.94), rgba(var(--color-bg-gray-rgb), 0.9));
-    --lnb-gap: var(--space-14);
-    --lnb-logo-size: var(--size-48);
-    --lnb-item-min-height: var(--control-height-xl);
-    --lnb-icon-size: var(--size-24);
+    --lnb-padding: var(--space-18) var(--space-16) var(--space-20) var(--space-20);
+    --lnb-background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.82), rgba(var(--color-bg-gray-rgb), 0.72));
+    --lnb-gap: var(--space-16);
+    --lnb-logo-size: 56px;
+    --lnb-item-min-height: 44px;
+    --lnb-icon-size: 24px;
 
-    --gnb-padding: var(--space-0) var(--space-8) var(--space-6) var(--space-4);
-    --gnb-gap: var(--space-12);
-    --gnb-button-height: var(--control-height-md);
+    --gnb-padding: var(--space-0);
+    --gnb-gap: var(--space-14);
+    --gnb-button-height: 40px;
 
-    --base-shadow:
-        0 0.8rem 2.4rem rgba(var(--color-black-rgb), 0.08),
-        inset 0 0.1rem 0 rgba(var(--color-white-rgb), 0.75);
+    --base-shadow: var(--surface-shadow-md);
+    --base-gradient: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.92), rgba(var(--color-bg-gray-rgb), 0.82));
+    --ele-border-radius: 18px;
 
-    --base-gradient: linear-gradient(
-        to bottom,
-        rgba(var(--color-bg-gray-rgb), 0.6),
-        rgba(var(--color-bg-secondary-gray-rgb), 0.7),
-        rgba(var(--color-bg-third-gray-rgb), 0.8)
-    );
-
-    --ele-border-radius: 8px;
-
-    --header-max-width: 100rem;
-    --header-height: 4rem;
+    --header-max-width: 112rem;
+    --header-height: 54px;
     --header-padding: 0 3rem;
     --header-offset: 4rem;
 
-    --header-background: linear-gradient(
-        to bottom,
-        rgba(var(--color-white-rgb), 0.2),
-        rgba(var(--color-bg-gray-rgb), 0.3),
-        rgba(var(--color-surface-rgb), 0.4)
-    );
+    --header-background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.62), rgba(var(--color-bg-gray-rgb), 0.52));
+    --main-background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-gray) 55%, var(--color-bg-blue) 100%);
 
-    --main-background: linear-gradient(
-        to bottom,
-        var(--color-bg) 0%,
-        var(--color-bg-gray) 50%,
-        var(--color-bg-blue) 100%
-    );
+    --side-width: 28rem;
 
-    --side-width: 23rem;
-
-    --base-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+    --text-font:
+        "SF Pro KR",
+        "SF Pro Text",
+        "Pretendard Variable",
+        "Pretendard",
+        "Apple SD Gothic Neo",
+        "Noto Sans KR",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        system-ui,
+        sans-serif;
+    --display-font:
+        "SF Pro KR",
+        "SF Pro Display",
+        "Pretendard Variable",
+        "Pretendard",
+        "Apple SD Gothic Neo",
+        "Noto Sans KR",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        system-ui,
+        sans-serif;
+    --mono-font:
+        "SF Mono",
+        "JetBrains Mono",
+        "SFMono-Regular",
+        ui-monospace,
+        Menlo,
+        Consolas,
+        monospace;
+    --base-font: var(--text-font);
 
     --font-xxs: 1.2rem;
     --font-xs: 1.4rem;
@@ -115,7 +154,7 @@
     --font-xl: 2.2rem;
     --font-2xl: 2.4rem;
     --font-3xl: 2.8rem;
-    --font-title: 3.6rem;
+    --font-title: 4.2rem;
 
     --font-s: var(--font-xs);
     --font-m: var(--font-base);
@@ -137,22 +176,22 @@
 }
 
 .focusable:focus-visible {
-    outline: 0.1rem solid var(--color-primary);
+    outline: 0.1rem solid rgba(var(--color-primary-rgb), 0.62);
     color: var(--color-text);
     outline-offset: 0.4rem;
-    border-radius: 0.6rem;
+    border-radius: 0.8rem;
 }
 
 :where(:focus-visible) {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid rgba(var(--color-primary-rgb), 0.62);
     outline-offset: 2px;
 }
 
-.rotated{
+.rotated {
     transform: rotate(180deg);
 }
 
-.no-drag{
+.no-drag {
     user-select: none;
     user-drag: none;
     -webkit-user-select: none;
@@ -179,14 +218,14 @@
 .title {
     font-size: var(--font-title);
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: -0.05em;
+    font-family: var(--display-font);
 }
 
 .desc {
     font-size: var(--font-s);
-    opacity: 0.7;
+    opacity: 0.72;
 }
-
 
 .page {
     max-width: var(--max-width);

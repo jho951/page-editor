@@ -57,7 +57,7 @@ function DocumentDetailView(): React.ReactElement {
     upsertCatalogItem({
       id: documentId,
       title,
-      accent: "#D7D7D7",
+      accent: "#c7d7ff",
       kind: "documents",
       createdAt: createdAt ?? findDocById(documentId)?.createdAt,
     });

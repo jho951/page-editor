@@ -36,7 +36,7 @@ function toTrashCardItem(item: TrashItem): DocCardItem {
     return {
         id: item.id,
         title: item.label,
-        accent: "#D7D7D7",
+        accent: "#ffd0c8",
         kind: "documents",
         createdAt: new Date(item.deletedAt).toISOString(),
     };
@@ -134,14 +134,14 @@ function TrashView(): React.ReactElement {
         <div className={styles.page}>
             <DocumentsPageHeader
                 title="휴지통"
-                subtitle="5분 후 삭제됩니다"
+                subtitle="최근 삭제된 문서를 잠시 보관합니다"
                 viewMode={viewMode}
                 onChangeViewMode={setViewMode}
             />
 
             <section className={styles.section} aria-label="삭제된 페이지 목록">
                 <div className={styles.sectionHeader}>
-                    <div className={styles.sectionTitle}>삭제된 문서</div>
+                    <div className={styles.sectionTitle}>최근 삭제 항목</div>
                 </div>
                 <div className={viewMode === "list" ? styles.list : styles.cards}>
                     {isLoading ? (

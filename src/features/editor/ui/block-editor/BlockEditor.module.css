@@ -1,314 +1,313 @@
 .wrap {
-  display: grid;
-  gap: 0;
+    display: grid;
+    gap: 0;
 }
 
 .wrapDragging {
-  cursor: grabbing;
+    cursor: grabbing;
 }
 
 .list {
-  display: grid;
-  gap: 0;
+    display: grid;
+    gap: 2px;
 }
 
 .row {
-  position: relative;
-  display: block;
-  padding-left: 60px;
+    position: relative;
+    display: block;
+    padding-left: 60px;
 }
 
 .rowSelected {
-  z-index: 2;
+    z-index: 2;
 }
 
 .rowDragging {
-  opacity: 0.42;
+    opacity: 0.42;
 }
 
 .rowDropBefore::before,
 .rowDropAfter::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(var(--color-primary-rgb), 0.68);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.08);
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(var(--color-primary-rgb), 0.68);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.08);
 }
 
 .rowDropBefore::before {
-  top: -2px;
+    top: -2px;
 }
 
 .rowDropAfter::after {
-  bottom: -2px;
+    bottom: -2px;
 }
 
 .leftRail {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-4);
-  padding-top: 2px;
+    position: absolute;
+    top: 6px;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
 }
 
 .contextTrigger,
 .drag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(var(--color-text-rgb), 0.26);
-  opacity: 0;
-  transition:
-    opacity 120ms ease,
-    background-color 120ms ease,
-    color 120ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.72);
+    color: rgba(var(--color-text-rgb), 0.26);
+    box-shadow: 0 6px 14px rgba(var(--color-black-rgb), 0.04);
+    opacity: 0;
+    transition:
+        opacity 120ms ease,
+        background-color 120ms ease,
+        color 120ms ease,
+        transform 120ms ease;
 }
 
 .rowSelected .contextTrigger,
 .rowSelected .drag,
 .row:hover .contextTrigger,
 .row:hover .drag {
-  opacity: 1;
+    opacity: 1;
 }
 
 .contextTrigger:hover,
 .drag:hover,
 .contextTriggerActive {
-  background: rgba(243, 240, 232, 0.98);
-  color: rgba(var(--color-text-rgb), 0.74);
+    background: rgba(var(--color-white-rgb), 0.9);
+    color: rgba(var(--color-text-rgb), 0.72);
 }
 
 .drag {
-  cursor: grab;
-  touch-action: none;
+    cursor: grab;
+    touch-action: none;
 }
 
 .drag:active {
-  cursor: grabbing;
+    cursor: grabbing;
 }
 
 .contextMenu {
-  position: absolute;
-  top: 0;
-  left: calc(100% + 12px);
-  z-index: 3;
-  width: 244px;
-  padding: var(--space-12);
-  border-radius: 20px;
-  border: 1px solid rgba(var(--color-text-rgb), 0.08);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow:
-    0 24px 48px rgba(var(--color-black-rgb), 0.12),
-    0 10px 20px rgba(var(--color-black-rgb), 0.05);
-  display: grid;
-  gap: var(--space-12);
+    position: absolute;
+    top: 0;
+    left: calc(100% + 12px);
+    z-index: 3;
+    width: 252px;
+    padding: 12px;
+    border-radius: 22px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    background: rgba(var(--color-white-rgb), 0.86);
+    box-shadow: var(--surface-shadow-lg);
+    backdrop-filter: blur(24px) saturate(1.22);
+    -webkit-backdrop-filter: blur(24px) saturate(1.22);
+    display: grid;
+    gap: 12px;
 }
 
 .menuSection {
-  display: grid;
-  gap: var(--space-8);
+    display: grid;
+    gap: 8px;
 }
 
 .menuLabel {
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(var(--color-text-rgb), 0.44);
-  letter-spacing: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(var(--color-text-rgb), 0.44);
+    letter-spacing: 0.01em;
 }
 
 .menuChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .menuChip,
 .clearColorChip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  height: 34px;
-  padding: 0 var(--space-12);
-  border-radius: 999px;
-  border: 1px solid rgba(var(--color-text-rgb), 0.08);
-  background: rgba(247, 245, 241, 0.96);
-  color: var(--color-heading);
-  font-size: 12px;
-  font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    background: rgba(var(--color-white-rgb), 0.82);
+    color: var(--color-heading);
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .menuChipActive {
-  background: rgba(var(--color-primary-rgb), 0.12);
-  border-color: rgba(var(--color-primary-rgb), 0.24);
-  color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.12);
+    border-color: rgba(var(--color-primary-rgb), 0.22);
+    color: var(--color-primary);
 }
 
 .colorSwatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .colorSwatch {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 0 1px rgba(var(--color-text-rgb), 0.08);
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    box-shadow: 0 0 0 1px rgba(var(--color-black-rgb), 0.08);
 }
 
 .colorSwatchActive {
-  box-shadow:
-    0 0 0 2px rgba(var(--color-primary-rgb), 0.28),
-    0 0 0 4px rgba(var(--color-primary-rgb), 0.08);
+    box-shadow:
+        0 0 0 2px rgba(var(--color-primary-rgb), 0.28),
+        0 0 0 5px rgba(var(--color-primary-rgb), 0.08);
 }
 
 .block {
-  display: block;
-  padding: 0;
-  min-height: 0;
-  height: auto;
-  border-radius: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+    display: block;
+    min-height: 0;
+    height: auto;
+    border-radius: 18px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 2px 0;
+    transition: background-color 120ms ease;
 }
 
+.row:hover .block,
 .blockSelected {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+    background: rgba(var(--color-primary-rgb), 0.035);
 }
 
 .blockConflict {
-  border: 0;
-  background: transparent;
+    border: 0;
+    background: rgba(var(--color-danger-rgb), 0.03);
 }
 
 .textarea {
-  width: 100%;
-  min-height: 0;
-  padding: 0;
-  resize: none;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-size: 1.6rem;
-  color: var(--color-heading);
-  overflow-x: hidden;
-  overflow-y: auto;
-  line-height: 1.8;
+    width: 100%;
+    min-height: 0;
+    padding: 8px 10px;
+    resize: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 1.65rem;
+    color: var(--color-heading);
+    overflow-x: hidden;
+    overflow-y: auto;
+    line-height: 1.82;
+    border-radius: 14px;
 }
 
 .rowSelected .textarea {
-  text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    text-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
 .textarea::placeholder {
-  color: rgba(var(--color-text-rgb), 0.22);
+    color: rgba(var(--color-text-rgb), 0.26);
 }
 
 .textareaHeading1 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  line-height: 1.06;
-  letter-spacing: -0.04em;
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.06em;
 }
 
 .textareaHeading2 {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+    font-size: 2.3rem;
+    font-weight: 700;
+    line-height: 1.14;
+    letter-spacing: -0.05em;
 }
 
 .textareaHeading3 {
-  font-size: 1.8rem;
-  font-weight: 600;
-  line-height: 1.18;
-  letter-spacing: -0.02em;
+    font-size: 1.95rem;
+    font-weight: 650;
+    line-height: 1.24;
+    letter-spacing: -0.03em;
 }
 
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .conflictBox {
-  display: grid;
-  gap: var(--space-8);
-  margin-top: var(--space-10);
-  padding: var(--space-14);
-  border-radius: 18px;
-  background: rgba(var(--color-white-rgb), 0.78);
-  border: 1px solid rgba(var(--color-danger-rgb), 0.2);
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(var(--color-white-rgb), 0.72);
+    border: 1px solid rgba(var(--color-danger-rgb), 0.18);
 }
 
 .conflictTitle {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-danger);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-danger);
 }
 
 .conflictText {
-  font-size: 13px;
-  color: rgba(var(--color-text-rgb), 0.78);
-  white-space: pre-wrap;
+    font-size: 13px;
+    color: rgba(var(--color-text-rgb), 0.78);
+    white-space: pre-wrap;
 }
 
 @media (max-width: 768px) {
-  .row {
-    display: block;
-    padding-left: 56px;
-  }
+    .row {
+        display: block;
+        padding-left: 48px;
+    }
 
-  .leftRail {
-    display: flex;
-    padding-top: 0;
-  }
+    .leftRail {
+        display: flex;
+        padding-top: 0;
+    }
 
-  .contextTrigger,
-  .drag {
-    opacity: 1;
-  }
+    .contextTrigger,
+    .drag {
+        opacity: 1;
+    }
 
-  .contextMenu {
-    left: 0;
-    top: 34px;
-    width: min(280px, calc(100vw - 32px));
-  }
+    .contextMenu {
+        left: 0;
+        top: 34px;
+        width: min(280px, calc(100vw - 32px));
+    }
 
-  .block {
-    padding: 0;
-  }
+    .textarea {
+        padding-inline: 8px;
+        font-size: 1.6rem;
+    }
 
-  .textarea {
-    font-size: 1.6rem;
-  }
+    .textareaHeading1 {
+        font-size: 2.4rem;
+    }
 
-  .textareaHeading1 {
-    font-size: 2.2rem;
-  }
+    .textareaHeading2 {
+        font-size: 2.1rem;
+    }
 
-  .textareaHeading2 {
-    font-size: 2rem;
-  }
-
-  .textareaHeading3 {
-    font-size: 1.8rem;
-  }
+    .textareaHeading3 {
+        font-size: 1.85rem;
+    }
 }

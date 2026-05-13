@@ -1,13 +1,12 @@
 .gnbWrap {
     width: 100%;
-    height: var(--header-height);
+    min-height: var(--header-height);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--gnb-padding);
-    flex-shrink: 0;
     gap: var(--gnb-gap);
-    min-height: var(--header-height);
+    padding: 2px 4px;
+    flex-shrink: 0;
 }
 
 .backIconBtn,
@@ -18,150 +17,142 @@
     justify-content: center;
     min-width: var(--gnb-button-height);
     height: var(--gnb-button-height);
-    padding: var(--space-0) var(--space-10);
+    padding: 0 8px;
     border-radius: 999px;
-    background: rgba(var(--color-white-rgb), 0.86);
-    border: 1px solid var(--color-border);
-    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.06);
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
     color: rgba(var(--color-text-rgb), 0.78);
+    transition:
+        background-color 120ms ease,
+        color 120ms ease,
+        border-color 120ms ease;
+}
+
+.mobileLogoBtn {
+    display: none;
+    min-width: auto;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
 }
 
 .iconActionBtn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    min-width: 2rem;
-    height: 2rem;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
     padding: 0;
-    border: 0;
-    border-radius: 0;
+    border: 1px solid transparent;
+    border-radius: 999px;
     background: transparent;
     box-shadow: none;
-    color: rgba(var(--color-text-rgb), 0.74);
+    color: rgba(var(--color-text-rgb), 0.66);
+    transition:
+        background-color 120ms ease,
+        color 120ms ease,
+        border-color 120ms ease;
 }
 
 .iconActionBtn:hover {
-    background: transparent;
-    color: rgba(var(--color-text-rgb), 0.98);
-}
-
-.iconActionBtn :global(svg),
-.iconActionBtn :global(img) {
-    display: block;
+    background: rgba(var(--color-black-rgb), 0.045);
+    border-color: rgba(var(--color-black-rgb), 0.05);
+    color: rgba(var(--color-heading-rgb), 0.92);
 }
 
 .favoriteBtnActive {
-    color: #b7791f;
+    color: var(--color-primary);
+}
+
+.restoreBtn,
+.deleteDetailBtn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: transparent;
+    box-shadow: none;
 }
 
 .restoreBtn {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: rgba(var(--color-white-rgb), 0.82);
-    box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.08);
-    color: rgba(var(--color-primary-rgb), 0.88);
-}
-
-.restoreBtn:hover {
-    background: rgba(var(--color-white-rgb), 0.96);
-    color: rgba(var(--color-primary-rgb), 1);
+    color: rgba(var(--color-primary-rgb), 0.92);
 }
 
 .deleteDetailBtn {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: rgba(var(--color-white-rgb), 0.82);
-    box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.08);
-    color: rgba(208, 73, 58, 0.82);
-}
-
-.deleteDetailBtn:hover {
-    background: rgba(var(--color-white-rgb), 0.96);
-    color: rgba(208, 73, 58, 0.98);
-}
-
-.backIconBtn:hover,
-.menuBtn:hover,
-.deleteActionBtn:hover {
-    background: rgba(var(--color-white-rgb), 0.98);
+    color: rgba(var(--color-danger-rgb), 0.92);
 }
 
 .avatar {
-    width: 2.1rem;
-    height: 2.1rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    width: 32px;
+    height: 32px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 55%, #1e3a8a 100%);
     color: white;
     border-radius: 999px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.82rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
+    box-shadow: none;
+}
+
+.avatarImage,
+.avatarLargeImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .gnbLeft {
     margin-right: auto;
     display: flex;
     align-items: center;
-    gap: var(--space-10);
+    gap: 8px;
     min-width: 0;
 }
 
 .gnbRight {
     display: flex;
     align-items: center;
-    gap: var(--space-12);
+    gap: 4px;
 }
 
 .saveBtn {
     min-height: var(--gnb-button-height);
-    padding: var(--space-0) var(--space-14);
+    padding: 0 14px;
 }
 
 .deleteActionBtn {
     min-height: var(--gnb-button-height);
-    padding: var(--space-0) var(--space-14);
-    border-radius: var(--base-radius);
-    background: rgba(var(--color-white-rgb), 0.86);
-    border: 1px solid var(--color-border);
-    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.06);
+    padding: 0 14px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--space-6);
+    gap: 6px;
 }
 
 .menuBtn {
-    min-width: auto;
-    height: auto;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    padding: 2px;
 }
 
-.menuBtn:hover {
-    background: transparent;
-}
-
-.mobileLogoBtn {
-    display: none;
-    min-width: auto;
-    height: auto;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    color: inherit;
-}
-
-.mobileLogoBtn:hover {
-    background: transparent;
+.menuBtn:hover,
+.backIconBtn:hover,
+.mobileLogoBtn:hover,
+.deleteActionBtn:hover {
+    background: rgba(var(--color-black-rgb), 0.045);
+    border-color: rgba(var(--color-black-rgb), 0.05);
 }
 
 .backIcon {
@@ -169,10 +160,431 @@
     line-height: 1;
 }
 
+.dialogViewport {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.dialogBackdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 23, 42, 0.18);
+    backdrop-filter: blur(14px) saturate(1.12);
+    -webkit-backdrop-filter: blur(14px) saturate(1.12);
+}
+
+.dialog {
+    position: relative;
+    width: min(520px, calc(100vw - 32px));
+    display: grid;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 30px;
+    background: rgba(var(--color-white-rgb), 0.88);
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    box-shadow:
+        0 28px 68px rgba(var(--color-black-rgb), 0.14),
+        0 1px 0 rgba(var(--color-white-rgb), 0.76) inset;
+    backdrop-filter: blur(30px) saturate(1.2);
+    -webkit-backdrop-filter: blur(30px) saturate(1.2);
+}
+
+.dialogHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dialogHeading {
+    display: grid;
+    gap: 8px;
+}
+
+.dialogEyebrow {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: rgba(var(--color-primary-rgb), 0.84);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.dialogTitle {
+    margin: 0;
+    color: var(--color-heading);
+    font-size: clamp(2.6rem, 2vw, 3.2rem);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+}
+
+.dialogDescription {
+    margin: 0;
+    color: rgba(var(--color-text-rgb), 0.72);
+    font-size: 1.35rem;
+    line-height: 1.62;
+}
+
+.dialogCloseButton {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(var(--color-black-rgb), 0.045);
+    color: rgba(var(--color-heading-rgb), 0.86);
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+.dialogCloseButton:hover {
+    background: rgba(var(--color-black-rgb), 0.08);
+    color: rgba(var(--color-heading-rgb), 0.96);
+}
+
+.dialogBody {
+    display: grid;
+    gap: 16px;
+}
+
+.settingsPanel {
+    display: grid;
+    gap: 12px;
+}
+
+.settingsPanelHeader {
+    display: grid;
+    gap: 4px;
+    padding: 0 2px;
+}
+
+.settingsPanelTitle {
+    color: var(--color-heading);
+    font-size: 1.45rem;
+    line-height: 1.3;
+}
+
+.settingsPanelDescription {
+    color: rgba(var(--color-text-rgb), 0.66);
+    font-size: 1.2rem;
+    line-height: 1.55;
+}
+
+.dialogSection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-radius: 22px;
+    background: rgba(var(--color-white-rgb), 0.74);
+    border: 1px solid rgba(var(--color-black-rgb), 0.05);
+}
+
+.accountSummary {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.accountAvatar {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 55%, #1e3a8a 100%);
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    flex: 0 0 auto;
+}
+
+.settingsInlineActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.sectionCopy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.sectionTitle {
+    color: var(--color-heading);
+    font-size: 1.45rem;
+    line-height: 1.3;
+}
+
+.sectionDescription {
+    color: rgba(var(--color-text-rgb), 0.68);
+    font-size: 1.25rem;
+    line-height: 1.5;
+}
+
+.segmentedControl {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(var(--color-black-rgb), 0.04);
+    border: 1px solid rgba(var(--color-black-rgb), 0.04);
+}
+
+.segmentButton {
+    min-width: 74px;
+    height: 34px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(var(--color-text-rgb), 0.7);
+    font-size: 1.25rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.segmentButtonActive {
+    background: rgba(var(--color-white-rgb), 0.94);
+    color: rgba(var(--color-heading-rgb), 0.94);
+    box-shadow: 0 8px 18px rgba(var(--color-black-rgb), 0.08);
+}
+
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(var(--color-primary-rgb), 0.08);
+    color: rgba(var(--color-primary-rgb), 0.84);
+    font-size: 1.2rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.profileHero {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(var(--color-white-rgb), 0.82), rgba(var(--color-bg-gray-rgb), 0.68));
+    border: 1px solid rgba(var(--color-black-rgb), 0.05);
+}
+
+.avatarEditor {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.avatarLarge {
+    width: 72px;
+    height: 72px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 55%, #1e3a8a 100%);
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.avatarEditButton {
+    min-height: 28px;
+    padding: 0 10px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    border-radius: 999px;
+    background: rgba(var(--color-white-rgb), 0.86);
+    color: rgba(var(--color-heading-rgb), 0.86);
+    font-size: 1.15rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.profileSummary {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.profileSummary strong {
+    color: var(--color-heading);
+    font-size: 1.55rem;
+    line-height: 1.3;
+}
+
+.profileSummary span {
+    color: rgba(var(--color-text-rgb), 0.68);
+    font-size: 1.25rem;
+    line-height: 1.5;
+}
+
+.avatarActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.secondaryInlineButton,
+.ghostInlineButton {
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.secondaryInlineButton {
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    background: rgba(var(--color-white-rgb), 0.86);
+    color: rgba(var(--color-heading-rgb), 0.88);
+}
+
+.ghostInlineButton {
+    border: 0;
+    background: rgba(var(--color-black-rgb), 0.04);
+    color: rgba(var(--color-text-rgb), 0.76);
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.field {
+    display: grid;
+    gap: 8px;
+}
+
+.fieldLabel {
+    color: rgba(var(--color-heading-rgb), 0.9);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.fieldInput {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--color-black-rgb), 0.07);
+    background: rgba(var(--color-white-rgb), 0.82);
+    color: var(--color-heading);
+    font-size: 1.35rem;
+    outline: none;
+    transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.fieldInput::placeholder {
+    color: rgba(var(--color-text-rgb), 0.42);
+}
+
+.fieldInput:focus {
+    border-color: rgba(var(--color-primary-rgb), 0.38);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.12);
+    background: rgba(var(--color-white-rgb), 0.94);
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 16px;
+    background: rgba(var(--color-black-rgb), 0.03);
+    border: 1px solid rgba(var(--color-black-rgb), 0.04);
+}
+
+.metaLabel {
+    color: rgba(var(--color-text-rgb), 0.68);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.metaValue {
+    color: rgba(var(--color-heading-rgb), 0.9);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.dialogNote {
+    margin: 0;
+    color: rgba(var(--color-text-rgb), 0.62);
+    font-size: 1.2rem;
+    line-height: 1.55;
+}
+
+.dialogActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.secondaryButton,
+.primaryButton {
+    min-width: 88px;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.secondaryButton {
+    border: 1px solid rgba(var(--color-black-rgb), 0.06);
+    background: rgba(var(--color-white-rgb), 0.84);
+    color: rgba(var(--color-heading-rgb), 0.86);
+    box-shadow: 0 8px 20px rgba(var(--color-black-rgb), 0.05);
+}
+
+.primaryButton {
+    border: 0;
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    color: #ffffff;
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+}
+
 @media (max-width: 840px) {
     .gnbWrap {
-        height: auto;
-        padding: var(--space-8) var(--space-4) var(--space-10);
+        padding: 2px 2px 4px;
     }
 
     .mobileLogoBtn {
@@ -180,10 +592,36 @@
     }
 
     .gnbRight {
-        gap: var(--space-6);
+        gap: 6px;
     }
 
     .deleteActionBtn {
-        padding-inline: var(--space-10);
+        padding-inline: 12px;
+    }
+
+    .dialogViewport {
+        align-items: flex-end;
+        padding: 16px;
+    }
+
+    .dialog {
+        width: 100%;
+        padding: 20px;
+        border-radius: 24px;
+    }
+
+    .dialogSection,
+    .profileHero,
+    .metaRow {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .segmentedControl {
+        width: 100%;
+    }
+
+    .segmentButton {
+        flex: 1 1 0;
     }
 }
