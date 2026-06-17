@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Icon } from "@jho951/ui-components";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import type { AppDispatch } from "@app/store/store.ts";
 import type { EditorBlockState } from "@features/editor/model/editor.types.ts";
 import { editorActions } from "@features/editor/state/editor.slice.ts";
@@ -37,6 +38,8 @@ function BlockEditorRow({
   dropAfter,
   dropBefore,
 }: BlockEditorRowProps): React.ReactElement {
+  const { t } = useI18n();
+
   return (
     <article
       ref={(element) => {
@@ -50,7 +53,7 @@ function BlockEditorRow({
           type="button"
           className={`${styles.contextTrigger} ${isMenuOpen ? styles.contextTriggerActive : ""}`}
           data-block-editor-trigger="true"
-          aria-label="블록 메뉴 열기"
+          aria-label={t("editor.block.menu.open")}
           onMouseDown={(event) => event.preventDefault()}
           onClick={(event) => {
             event.stopPropagation();
@@ -62,7 +65,7 @@ function BlockEditorRow({
         <button
           type="button"
           className={styles.drag}
-          aria-label="블록 이동 핸들"
+          aria-label={t("editor.block.dragHandle")}
           onPointerDown={(event) => interactions.handleStartDragging(block.id, event)}
         >
           <Icon name="dragHandle" source="url" basePath="/icons" size={14} />
@@ -78,7 +81,7 @@ function BlockEditorRow({
             onClick={(event) => event.stopPropagation()}
           >
             <div className={styles.menuSection}>
-              <div className={styles.menuLabel}>Type</div>
+              <div className={styles.menuLabel}>{t("editor.block.menu.type")}</div>
               <div className={styles.menuChips}>
                 {BLOCK_TYPE_OPTIONS.map((option) => (
                   <button
@@ -102,7 +105,7 @@ function BlockEditorRow({
             </div>
 
             <div className={styles.menuSection}>
-              <div className={styles.menuLabel}>Format</div>
+              <div className={styles.menuLabel}>{t("editor.block.menu.format")}</div>
               <div className={styles.menuChips}>
                 <button
                   type="button"
@@ -168,7 +171,7 @@ function BlockEditorRow({
             </div>
 
             <div className={styles.menuSection}>
-              <div className={styles.menuLabel}>Color</div>
+              <div className={styles.menuLabel}>{t("editor.block.menu.color")}</div>
               <div className={styles.colorSwatches}>
                 {TEXT_COLOR_OPTIONS.map((color) => (
                   <button
@@ -176,7 +179,7 @@ function BlockEditorRow({
                     type="button"
                     className={`${styles.colorSwatch} ${readTextColor(block) === color ? styles.colorSwatchActive : ""}`}
                     style={{ backgroundColor: color }}
-                    aria-label={`텍스트 색상 ${color}`}
+                    aria-label={t("editor.block.textColorAria", { color })}
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() =>
                       dispatch(
@@ -200,8 +203,8 @@ function BlockEditorRow({
                       }),
                     )
                   }
-                >
-                  Clear
+                  >
+                  {t("editor.block.clearColor")}
                 </button>
               </div>
             </div>
@@ -237,13 +240,13 @@ function BlockEditorRow({
               }),
             )
           }
-          placeholder={block.draft.type === "paragraph" ? "텍스트를 입력하세요" : "제목을 입력하세요"}
+          placeholder={block.draft.type === "paragraph" ? t("editor.block.paragraphPlaceholder") : t("editor.block.headingPlaceholder")}
         />
 
         {block.status === "conflicted" && block.remoteContent ? (
           <div className={styles.conflictBox}>
-            <div className={styles.conflictTitle}>서버 최신본과 충돌했습니다.</div>
-            <div className={styles.conflictText}>{block.remoteContent.text || "(empty)"}</div>
+            <div className={styles.conflictTitle}>{t("editor.block.conflict.title")}</div>
+            <div className={styles.conflictText}>{block.remoteContent.text || t("editor.block.conflict.empty")}</div>
             <div className={styles.actions}>
               <Button
                 type="button"
@@ -258,7 +261,7 @@ function BlockEditorRow({
                   )
                 }
               >
-                내 수정 유지
+                {t("editor.block.conflict.keepMine")}
               </Button>
               <Button
                 type="button"
@@ -273,7 +276,7 @@ function BlockEditorRow({
                   )
                 }
               >
-                서버 버전 사용
+                {t("editor.block.conflict.useServer")}
               </Button>
             </div>
           </div>

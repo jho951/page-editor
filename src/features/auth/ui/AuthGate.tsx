@@ -4,6 +4,7 @@
 
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppSelector } from "@app/store/hooks.ts";
 import {
   selectAuthError,
@@ -26,6 +27,7 @@ import type { AuthGateProps } from "@features/auth/ui/AuthGate.types.ts";
 function AuthGate({ children }: AuthGateProps): React.ReactElement {
   const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === "true";
   const location = useLocation();
+  const { t } = useI18n();
   const initialized = useAppSelector(selectAuthInitialized);
   const status = useAppSelector(selectAuthStatus);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
@@ -42,11 +44,15 @@ function AuthGate({ children }: AuthGateProps): React.ReactElement {
   }
 
   if (!initialized || status === "loading") {
-    return <div style={{ padding: 32 }}>인증 상태를 확인하는 중입니다...</div>;
+    return <div style={{ padding: 32 }}>{t("auth.gate.checking")}</div>;
   }
 
   if (!isAuthenticated) {
-    return <div style={{ padding: 32 }}>{error ? `로그인 페이지로 이동 중입니다... ${error}` : "로그인 페이지로 이동 중입니다..."}</div>;
+    return (
+      <div style={{ padding: 32 }}>
+        {error ? t("auth.gate.redirectingWithError", { error }) : t("auth.gate.redirecting")}
+      </div>
+    );
   }
 
   return children;

@@ -5,6 +5,7 @@
 import React from "react";
 import { Icon } from "@jho951/ui-components";
 import { useNavigate } from "react-router-dom";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch } from "@app/store/hooks.ts";
 import { uiActions } from "@app/state/ui.slice.ts";
 import type { FolderItem, LnbActiveKey } from "@features/layout/ui/lnb/Lnb.types.ts";
@@ -68,6 +69,7 @@ function FolderNode({
 }: FolderNodeProps): React.ReactElement {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { t } = useI18n();
 
   const isSection = level === 0;
 
@@ -80,6 +82,7 @@ function FolderNode({
   const isActive = activeKey === myKey;
 
   const iconName = resolveIconName(node);
+  const displayLabel = node.id === "my" ? t("layout.sidebar.root.allDocuments") : node.label;
 
   const isPersonalSection = isSection && node.id === "my";
 
@@ -112,7 +115,7 @@ function FolderNode({
 
     if (canAddChild) {
       items.push({
-        label: "새 문서",
+        label: t("common.actions.create"),
         onClick: () => {
           onAddChild?.(node.id);
         },
@@ -122,19 +125,19 @@ function FolderNode({
     if (!isSection && node.key) {
       items.push(
         {
-          label: "새 탭에서 열기",
+          label: t("common.actions.openInNewTab"),
           onClick: () => {
             window.open(pagePath, "_blank", "noopener,noreferrer");
           },
         },
         {
-          label: "이동",
+          label: t("common.actions.move"),
           onClick: () => {
-            dispatch(uiActions.showToast({ message: "이동 기능은 준비 중입니다." }));
+            dispatch(uiActions.showToast({ message: t("layout.folder.movePending") }));
           },
         },
         {
-          label: "삭제",
+          label: t("common.actions.delete"),
           onClick: () => {
             onMoveToTrash?.(pageId);
             if (myKey === activeKey) {
@@ -201,7 +204,7 @@ function FolderNode({
               <button
                 type="button"
                 className={`${styles.chevronBtn} ${styles.chevronBtnInSlot} ${isOpen ? styles.chevronBtnOpen : ""}`}
-                aria-label={isOpen ? "하위 페이지 접기" : "하위 페이지 펼치기"}
+                aria-label={isOpen ? t("layout.sidebar.collapseChildren") : t("layout.sidebar.expandChildren")}
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggle(node.id);
@@ -213,7 +216,7 @@ function FolderNode({
           </button>
         ) : null}
       </span>
-      <span className={styles.label}>{node.label}</span>
+      <span className={styles.label}>{displayLabel}</span>
     </span>
       </div>
 
@@ -247,7 +250,7 @@ function FolderNode({
           className={[styles.row, styles.empty].join(" ")}
           onClick={() => onAddChild?.(node.id)}
         >
-          새 문서 추가
+          {t("layout.folder.addDocument")}
         </button>
       ) : null}
     </div>

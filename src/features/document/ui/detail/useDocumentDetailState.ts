@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import { pagesApi } from "@features/layout/api/pages.ts";
 import type { HttpError } from "@shared/api/client.types.ts";
 import type {
@@ -31,6 +32,7 @@ function useDocumentDetailState({
   documentId,
   onTitleSync,
 }: UseDocumentDetailStateOptions): UseDocumentDetailStateResult {
+  const { t } = useI18n();
   const [documentState, setDocumentState] = useState<DocumentDetailState | null>(null);
   const [titleDraft, setTitleDraft] = useState<string>("");
   const [titleSaveState, setTitleSaveState] = useState<DocumentTitleSaveState>("idle");
@@ -45,7 +47,7 @@ function useDocumentDetailState({
       setTitleSaveState("idle");
       setTitleError(null);
       setLoading(false);
-      setError("문서 ID가 없습니다.");
+      setError(t("document.detail.state.noId"));
       return;
     }
 
@@ -73,7 +75,7 @@ function useDocumentDetailState({
       } catch (loadError) {
         if (cancelled) return;
 
-        setError(loadError instanceof Error ? loadError.message : "문서를 불러오지 못했습니다.");
+        setError(loadError instanceof Error ? loadError.message : t("document.detail.state.loadFailed"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -84,7 +86,7 @@ function useDocumentDetailState({
     return () => {
       cancelled = true;
     };
-  }, [documentId, onTitleSync]);
+  }, [documentId, onTitleSync, t]);
 
   useEffect(() => {
     if (titleSaveState !== "saved") return;
@@ -174,9 +176,9 @@ function useDocumentDetailState({
       onTitleSync(updatedDocument.id, updatedDocument.title, updatedDocument.createdAt);
     } catch (saveError) {
       setTitleSaveState("error");
-      setTitleError(saveError instanceof Error ? saveError.message : "제목을 저장하지 못했습니다.");
+      setTitleError(saveError instanceof Error ? saveError.message : t("document.detail.state.saveTitleFailed"));
     }
-  }, [documentId, documentState, onTitleSync, titleDraft, titleSaveState]);
+  }, [documentId, documentState, onTitleSync, t, titleDraft, titleSaveState]);
 
   return {
     documentState,

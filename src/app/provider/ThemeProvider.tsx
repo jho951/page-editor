@@ -1,7 +1,7 @@
 /**
  * 테마 상태와 토글 컨텍스트를 제공합니다.
  */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ThemeContext } from "@app/provider/ThemeContext.ts";
 import type { ProvidersProps, Theme, ThemeContextValue, ThemePreference } from "@app/provider/provider.types.ts";
 
@@ -47,16 +47,19 @@ const ThemeProvider: React.FC<ProvidersProps> = ({ children }) => {
 
     const resolvedTheme: Theme = theme === "system" ? systemTheme : theme;
 
-    const setTheme = (next: ThemePreference) => {
-        setThemeState(next);
+    const setTheme = useCallback((next: ThemePreference) => {
         if (typeof window !== "undefined") {
             window.localStorage.setItem(THEME_STORAGE_KEY, next);
         }
-    };
+        if (next === "system") {
+            setSystemTheme(resolveSystemTheme());
+        }
+        setThemeState((currentTheme) => (currentTheme === next ? currentTheme : next));
+    }, []);
 
-    const toggleTheme = () => {
+    const toggleTheme = useCallback(() => {
         setTheme(resolvedTheme === "dark" ? "light" : "dark");
-    };
+    }, [resolvedTheme, setTheme]);
 
     useEffect(() => {
         if (theme !== "system" || typeof window === "undefined") return;
@@ -87,12 +90,12 @@ const ThemeProvider: React.FC<ProvidersProps> = ({ children }) => {
         }
     }, [resolvedTheme]);
 
-    const value: ThemeContextValue = {
+    const value = useMemo<ThemeContextValue>(() => ({
         theme,
         resolvedTheme,
         toggleTheme,
         setTheme,
-    };
+    }), [resolvedTheme, setTheme, theme, toggleTheme]);
 
     return (
         <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

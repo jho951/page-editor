@@ -6,7 +6,9 @@ import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/tool
 import type { RootState } from "@app/store/store.ts";
 import { generateId } from "@jho951/ui-components";
 import { editorTransactionsApi } from "@features/editor/api/transactions.ts";
+import { logEditorDebug } from "@features/editor/lib/editorDebug.ts";
 import { buildPendingQueue } from "@features/editor/lib/editorQueue.ts";
+import { translate } from "@shared/i18n/runtime.ts";
 import type {
   EditorBlockState,
   EditorConflictResponse,
@@ -915,23 +917,23 @@ export const flushEditorTransactions = createAsyncThunk<
   const ops = prepareEditorTransactionOperations(state, inFlightBatch?.ops ?? state.queue.ops);
 
   if (!documentId) {
-    console.log("[EDITOR][flush-skip]", {
+    logEditorDebug("flush-skip", () => ({
       documentId,
       inFlight: state.inFlight,
       queueLength: ops.length,
       force: Boolean(_arg?.force),
-    });
+    }));
     return rejectWithValue({ message: "no-op" });
   }
 
   const force = Boolean(_arg?.force);
   if (!force && ops.length === 0) {
-    console.log("[EDITOR][flush-noop]", {
+    logEditorDebug("flush-noop", () => ({
       documentId,
       inFlight: state.inFlight,
       queueLength: ops.length,
       force,
-    });
+    }));
     return rejectWithValue({ message: "no-op" });
   }
 
@@ -943,22 +945,22 @@ export const flushEditorTransactions = createAsyncThunk<
     operations: ops,
   };
 
-  console.log("[EDITOR][flush-request]", {
+  logEditorDebug("flush-request", () => ({
     documentId,
     batchId,
     force,
     queueLength: payload.operations.length,
     documentVersion: payload.documentVersion,
-  });
+  }));
 
   try {
 
     const response = await editorTransactionsApi.postTransactions(documentId, payload);
-    console.log("[EDITOR][flush-success]", {
+    logEditorDebug("flush-success", () => ({
       documentId,
       batchId,
       response,
-    });
+    }));
     return { batchId, response };
   } catch (error) {
 
@@ -970,38 +972,38 @@ export const flushEditorTransactions = createAsyncThunk<
         "code" in (e.data as Record<string, unknown>) &&
         (e.data as { code?: string }).code === "CONFLICT"
       ) {
-        console.log("[EDITOR][flush-conflict-local]", {
+        logEditorDebug("flush-conflict-local", () => ({
           documentId,
           batchId,
           status: e.status,
           data: e.data,
-        });
+        }));
         return rejectWithValue(e.data as EditorConflictResponse);
       }
 
-      console.log("[EDITOR][flush-conflict]", {
+      logEditorDebug("flush-conflict", () => ({
         documentId,
         batchId,
         status: e.status,
         data: e.data,
-      });
+      }));
       return rejectWithValue({ message: "save conflict", status: 409 });
     }
     if (e.status === 409) {
-      console.log("[EDITOR][flush-conflict]", {
+      logEditorDebug("flush-conflict", () => ({
         documentId,
         batchId,
         status: e.status,
         data: e.data,
-      });
+      }));
       return rejectWithValue({ message: "save conflict", status: 409 });
     }
-    console.log("[EDITOR][flush-error]", {
+    logEditorDebug("flush-error", () => ({
       documentId,
       batchId,
       status: e.status,
       message: e.message,
-    });
+    }));
     return rejectWithValue({ message: e.message ?? "save failed" });
   }
 });
@@ -1602,7 +1604,7 @@ const editorSlice = createSlice({
         });
 
         state.saveState = "conflict";
-        state.errorMessage = "동일한 블록이 다른 변경과 충돌했습니다.";
+        state.errorMessage = translate("editor.error.blockConflict");
       } else if (action.payload && "status" in action.payload && action.payload.status === 409) {
         state.queue = buildPendingQueue([...inFlightOps, ...state.queue.ops]);
         inFlightOps.forEach((op) => {
@@ -1615,7 +1617,7 @@ const editorSlice = createSlice({
           }
         });
         state.saveState = "conflict";
-        state.errorMessage = "서버 최신 상태와 충돌했습니다. 최신 내용을 다시 불러온 뒤 저장을 재시도하세요.";
+        state.errorMessage = translate("editor.error.serverConflict");
       } else if (action.payload && "message" in action.payload && action.payload.message !== "no-op") {
         // Transport/server failures requeue the batch so autosave or manual retry can send it again.
         state.queue = buildPendingQueue([...inFlightOps, ...state.queue.ops]);

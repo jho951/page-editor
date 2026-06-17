@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch } from "@app/store/store.ts";
 import { useNavigate } from "react-router-dom";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import { createChildPage, fetchLnbDocuments, layoutActions, movePageToTrashRemote } from "@features/layout/state/layout.slice.ts";
 import { selectAuthInitialized, selectIsAuthenticated } from "@features/auth/index.ts";
 import type { FolderItem, LnbActiveKey, LnbProps } from "@features/layout/ui/lnb/Lnb.types.ts";
@@ -26,6 +27,7 @@ import styles from "./Lnb.module.css";
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay = false }: LnbProps) {
+    const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === "true";
     const [draggingPageId, setDraggingPageId] = useState<string | null>(null);
     const [dropHint, setDropHint] = useState<{
         targetId: string;
@@ -33,6 +35,7 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
     } | null>(null);
 
     const navigate = useNavigate();
+    const { t } = useI18n();
 
     const dispatch = useDispatch<AppDispatch>();
 
@@ -45,9 +48,9 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
     const folders = useSelector(selectFolders);
 
     useEffect(() => {
-        if (!authInitialized || !isAuthenticated) return;
+        if (!bypassAuth && (!authInitialized || !isAuthenticated)) return;
         void dispatch(fetchLnbDocuments());
-    }, [authInitialized, dispatch, isAuthenticated]);
+    }, [authInitialized, bypassAuth, dispatch, isAuthenticated]);
 
     const go = (key: LnbActiveKey) => {
         onNavigate?.(key);
@@ -170,7 +173,7 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
 
             await dispatch(fetchLnbDocuments()).unwrap();
         } catch {
-            dispatch(uiActions.showToast({ message: "문서를 이동하지 못했습니다.", duration: 3000 }));
+            dispatch(uiActions.showToast({ message: t("layout.folder.moveFailed"), duration: 3000 }));
         }
     };
 
@@ -218,7 +221,7 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
     };
 
     return (
-        <aside className={`${styles.lnbWrap} ${mobileOverlay ? styles.overlayMode : ""}`} aria-label="Sidebar">
+        <aside className={`${styles.lnbWrap} ${mobileOverlay ? styles.overlayMode : ""}`} aria-label={t("layout.sidebar.aria")}>
             {showTopRow && (
                 <>
                     <div className={styles.topRow}>
@@ -238,7 +241,7 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
                 </>
             )}
 
-            <div className={styles.treeArea} aria-label="페이지 트리">
+            <div className={styles.treeArea} aria-label={t("layout.sidebar.pageTree")}>
                 {folders.filter((folder) => folder.id !== "pinned").map((folder) => (
                     <FolderNode
                         key={folder.id}
@@ -263,7 +266,7 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
                 ))}
             </div>
 
-            <section className={styles.trashPane} aria-label="휴지통">
+            <section className={styles.trashPane} aria-label={t("layout.sidebar.trashAria")}>
                 <button
                     type="button"
                     className={`${styles.trashBlock} ${activeKey === "trash" ? styles.trashBlockActive : ""}`}
@@ -276,7 +279,7 @@ function Lnb({ activeKey = "home", onNavigate, showTopRow = true, mobileOverlay 
                         <span className={styles.trashIconSlot} aria-hidden="true">
                             <Icon name="trash" source="url" basePath="/icons" size={14} />
                         </span>
-                        <span className={styles.trashTitle}>휴지통</span>
+                        <span className={styles.trashTitle}>{t("layout.sidebar.trash")}</span>
                     </span>
                 </button>
             </section>

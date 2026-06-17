@@ -9,6 +9,7 @@ import {
   selectEditor,
   selectEditorSaveState,
 } from "@features/editor/state/editor.selector.ts";
+import { logEditorDebug } from "@features/editor/lib/editorDebug.ts";
 
 const AUTOSAVE_MS = 2000;
 
@@ -46,13 +47,13 @@ function useEditorAutosave({
       if (saveStateRef.current === "saving") {
         if (force) {
           pendingForceSaveRef.current = true;
-          console.log("[EDITOR][request-save-deferred]", {
+          logEditorDebug("request-save-deferred", () => ({
             force,
             saveState: saveStateRef.current,
             currentDocumentId: latestEditorRef.current.document.currentDocumentId,
             queueLength: latestEditorRef.current.queue.ops.length,
             inFlight: latestEditorRef.current.inFlight,
-          });
+          }));
         }
         return;
       }
@@ -63,13 +64,13 @@ function useEditorAutosave({
       saveTimerRef.current = window.setTimeout(() => {
         saveTimerRef.current = null;
         if (saveStateRef.current === "saving") return;
-        console.log("[EDITOR][request-save]", {
+        logEditorDebug("request-save", () => ({
           force,
           saveState: saveStateRef.current,
           currentDocumentId: latestEditorRef.current.document.currentDocumentId,
           queueLength: latestEditorRef.current.queue.ops.length,
           inFlight: latestEditorRef.current.inFlight,
-        });
+        }));
         void dispatch(flushEditorTransactions(force ? { force: true } : undefined));
       }, 0);
     },

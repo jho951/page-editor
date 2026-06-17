@@ -3,6 +3,7 @@
  */
 
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { translate } from "@shared/i18n/runtime.ts";
 
 export type ContextMenuItem = {
   label: string;
@@ -38,8 +39,8 @@ export type ConfirmState =
       open: false;
       title: "";
       message: "";
-      confirmLabel: "확인";
-      cancelLabel: "취소";
+      confirmLabel: string;
+      cancelLabel: string;
       danger: false;
       onConfirm: null;
     };
@@ -64,8 +65,8 @@ const initialState: UiState = {
     open: false,
     title: "",
     message: "",
-    confirmLabel: "확인",
-    cancelLabel: "취소",
+    confirmLabel: translate("common.actions.confirm"),
+    cancelLabel: translate("common.actions.cancel"),
     danger: false,
     onConfirm: null,
   },
@@ -101,8 +102,8 @@ const uiSlice = createSlice({
         title: action.payload.title,
         message: action.payload.message,
         onConfirm: action.payload.onConfirm,
-        confirmLabel: action.payload.confirmLabel ?? "확인",
-        cancelLabel: action.payload.cancelLabel ?? "취소",
+        confirmLabel: action.payload.confirmLabel ?? translate("common.actions.confirm"),
+        cancelLabel: action.payload.cancelLabel ?? translate("common.actions.cancel"),
         danger: action.payload.danger ?? false,
       };
     },
@@ -111,8 +112,8 @@ const uiSlice = createSlice({
         open: false,
         title: "",
         message: "",
-        confirmLabel: "확인",
-        cancelLabel: "취소",
+        confirmLabel: translate("common.actions.confirm"),
+        cancelLabel: translate("common.actions.cancel"),
         danger: false,
         onConfirm: null,
       };

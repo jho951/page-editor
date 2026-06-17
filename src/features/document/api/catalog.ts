@@ -4,6 +4,7 @@
 
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { translate } from "@shared/i18n/runtime.ts";
 import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
 import type { DocCardItem, DocKind } from "@features/document/model/document.types.ts";
 import type { ApiEnvelope, FetchCatalogResult, RemoteCatalogItem } from "@features/document/api/catalog.types.ts";
@@ -52,7 +53,7 @@ function toCardItem(item: RemoteCatalogItem, fallbackKind: DocKind): DocCardItem
 
   return {
     id: String(item.id),
-    title: String(item.title ?? "Untitled"),
+    title: String(item.title ?? translate("common.document.untitled")),
     accent: "#c7d7ff",
     kind: fallbackKind,
     createdAt: item.createdAt,

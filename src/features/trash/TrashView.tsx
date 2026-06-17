@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch } from "@app/store/hooks.ts";
 import { uiActions } from "@app/state/ui.slice.ts";
 import { DocumentCard } from "@features/document/index.ts";
@@ -28,10 +29,6 @@ import styles from "./TrashView.module.css";
  * @param ts 포맷할 삭제 시각 타임스탬프입니다.
  * @returns 사용자 화면에 표시할 날짜 문자열을 반환합니다.
  */
-function formatDeletedAt(ts: number): string {
-    return new Date(ts).toLocaleString();
-}
-
 function toTrashCardItem(item: TrashItem): DocCardItem {
     return {
         id: item.id,
@@ -42,15 +39,15 @@ function toTrashCardItem(item: TrashItem): DocCardItem {
     };
 }
 
-function toTrashPreview(item: TrashItem): DocCardPreviewItem[] {
+function toTrashPreview(heading: string, deletedAtText: string): DocCardPreviewItem[] {
     return [
         {
             blockType: "heading3",
-            text: "휴지통에 보관된 문서",
+            text: heading,
         },
         {
             blockType: "paragraph",
-            text: `삭제됨 ${formatDeletedAt(item.deletedAt)}`,
+            text: deletedAtText,
         },
     ];
 }
@@ -63,6 +60,7 @@ function TrashView(): React.ReactElement {
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const { formatDateTime, t } = useI18n();
 
     const trashItems = useSelector(selectTrashItems);
     const [isLoading, setIsLoading] = useState(true);
@@ -105,9 +103,12 @@ function TrashView(): React.ReactElement {
             trashItems.map((item) => ({
                 item,
                 card: toTrashCardItem(item),
-                preview: toTrashPreview(item),
+                preview: toTrashPreview(
+                    t("trash.preview.heading"),
+                    t("trash.preview.deletedAt", { date: formatDateTime(item.deletedAt) }),
+                ),
             })),
-        [trashItems]
+        [formatDateTime, t, trashItems]
     );
 
     const onRestore = async (pageId: string) => {
@@ -127,27 +128,27 @@ function TrashView(): React.ReactElement {
         }
         await refreshTrash();
         navigate("/delete", { replace: true });
-        dispatch(uiActions.showToast({ message: "완전 삭제되었습니다.", duration: 3000 }));
+        dispatch(uiActions.showToast({ message: t("trash.toast.deleted"), duration: 3000 }));
     };
 
     return (
         <div className={styles.page}>
             <DocumentsPageHeader
-                title="휴지통"
-                subtitle="최근 삭제된 문서를 잠시 보관합니다"
+                title={t("trash.title")}
+                subtitle={t("trash.subtitle")}
                 viewMode={viewMode}
                 onChangeViewMode={setViewMode}
             />
 
-            <section className={styles.section} aria-label="삭제된 페이지 목록">
+            <section className={styles.section} aria-label={t("trash.section.title")}>
                 <div className={styles.sectionHeader}>
-                    <div className={styles.sectionTitle}>최근 삭제 항목</div>
+                    <div className={styles.sectionTitle}>{t("trash.section.title")}</div>
                 </div>
                 <div className={viewMode === "list" ? styles.list : styles.cards}>
                     {isLoading ? (
-                        <div className={styles.empty}>휴지통을 불러오는 중입니다.</div>
+                        <div className={styles.empty}>{t("trash.loading")}</div>
                     ) : trashItems.length === 0 ? (
-                        <div className={styles.empty}>휴지통이 비어 있습니다.</div>
+                        <div className={styles.empty}>{t("trash.empty")}</div>
                     ) : (
                         trashCards.map(({ item, card, preview }) => (
                             <div
@@ -161,20 +162,20 @@ function TrashView(): React.ReactElement {
                                             y: event.clientY,
                                             items: [
                                                 {
-                                                    label: "복구",
+                                                    label: t("common.actions.restore"),
                                                     onClick: () => {
                                                         void onRestore(item.id);
                                                     },
                                                 },
                                                 {
-                                                    label: "완전 삭제",
+                                                    label: t("common.actions.delete"),
                                                     onClick: () => {
                                                         dispatch(
                                                             uiActions.openConfirm({
-                                                                title: "문서를 완전 삭제할까요?",
-                                                                message: "삭제 후에는 복구할 수 없습니다.",
-                                                                confirmLabel: "삭제",
-                                                                cancelLabel: "취소",
+                                                                title: t("trash.confirm.title"),
+                                                                message: t("trash.confirm.message"),
+                                                                confirmLabel: t("trash.confirm.confirmLabel"),
+                                                                cancelLabel: t("common.actions.cancel"),
                                                                 danger: true,
                                                                 onConfirm: () => {
                                                                     void onPermanentDelete(item.id);

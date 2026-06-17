@@ -5,6 +5,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import { DocumentGrid } from "@features/document/ui/grid/DocumentGrid.tsx";
 import { fetchCatalog } from "@features/document/api/catalog.ts";
 import type { DocCardItem } from "@features/document/model/document.types.ts";
@@ -24,6 +25,7 @@ import styles from "./DocumentCatalogView.module.css";
 function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): React.ReactElement {
 
     const navigate = useNavigate();
+    const { formatNumber, t } = useI18n();
     const [query, setQuery] = useState<string>("");
     const [viewMode, setViewMode] = useState<DocumentsViewMode>("grid");
     const [baseItems, setBaseItems] = useState<DocCardItem[]>([]);
@@ -69,9 +71,9 @@ function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): 
     return (
         <div className={shellStyles.content}>
             <DocumentPageHeader
-                eyebrow="문서함"
-                title="문서 라이브러리"
-                lead="최근 문서와 저장된 문서를 한곳에서 보고, 정렬하고, 바로 편집하세요."
+                eyebrow={t("document.catalog.eyebrow")}
+                title={t("document.catalog.title")}
+                lead={t("document.catalog.lead")}
                 actions={
                     <>
                         <label className={styles.searchField}>
@@ -79,45 +81,45 @@ function DocumentCatalogView({ mode = "documents" }: DocumentCatalogViewProps): 
                                 className={styles.searchInput}
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="문서 검색"
-                                aria-label="문서 검색"
+                                placeholder={t("document.catalog.searchPlaceholder")}
+                                aria-label={t("document.catalog.searchAria")}
                             />
                             <span className={styles.searchIcon} aria-hidden="true">
                                 <span className={styles.searchLens} />
                             </span>
                         </label>
 
-                        <div className={styles.viewToggle} role="group" aria-label="View mode">
+                        <div className={styles.viewToggle} role="group" aria-label={t("common.view.modeAria", { title: t("document.catalog.title") })}>
                             <button
                                 type="button"
                                 className={`${styles.viewButton} ${viewMode === "grid" ? styles.viewButtonActive : ""}`}
                                 onClick={() => setViewMode("grid")}
                             >
-                                카드
+                                {t("common.view.grid")}
                             </button>
                             <button
                                 type="button"
                                 className={`${styles.viewButton} ${viewMode === "list" ? styles.viewButtonActive : ""}`}
                                 onClick={() => setViewMode("list")}
                             >
-                                리스트
+                                {t("common.view.list")}
                             </button>
                         </div>
 
-                        <button className={styles.iconBtn} type="button" aria-label="Sort">
-                            최신순
+                        <button className={styles.iconBtn} type="button" aria-label={t("document.catalog.sortAria")}>
+                            {t("document.catalog.sortNewest")}
                         </button>
                     </>
                 }
                 meta={
                     <>
-                        <div className={shellStyles.metaChip}>Collections</div>
-                        <div className={shellStyles.metaChip}>{items.length}개 문서</div>
+                        <div className={shellStyles.metaChip}>{t("document.catalog.collections")}</div>
+                        <div className={shellStyles.metaChip}>{t("document.catalog.count", { count: formatNumber(items.length) })}</div>
                     </>
                 }
             />
             <div className={shellStyles.statusRow} aria-live="polite">
-                {loading ? "문서 목록 불러오는 중..." : source === "remote" ? "API 문서 목록 사용 중" : "로컬 카탈로그 사용 중"}
+                {loading ? t("document.catalog.loadingState") : source === "remote" ? t("document.catalog.loading.remote") : t("document.catalog.loading.local")}
                 {error ? ` · ${error}` : ""}
             </div>
 

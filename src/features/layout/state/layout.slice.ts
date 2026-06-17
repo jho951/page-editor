@@ -8,6 +8,7 @@ import { initialState, type OpenFolderMap } from "@features/layout/state/layout.
 import { uiActions } from "@app/state/ui.slice.ts";
 import { documentsApi } from "@shared/api/client.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { translate } from "@shared/i18n/runtime.ts";
 import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
 import type { ApiEnvelope, TrashDocumentResponse } from "@shared/api/service-contract.ts";
 import { pagesApi, type ListDocumentsItem } from "@features/layout/api/pages.ts";
@@ -105,7 +106,7 @@ function toFolderNode(item: ListDocumentsItem): FolderItem | null {
     const id = item.id == null ? "" : String(item.id);
     if (!id) return null;
 
-    const label = String(item.title ?? item.name ?? "제목 없음");
+    const label = String(item.title ?? item.name ?? translate("common.document.untitled"));
     return {
         id,
         docId: id,
@@ -140,7 +141,7 @@ function toTrashItem(item: RemoteTrashItem): TrashItem | null {
 
     return {
         id,
-        label: String(item.title ?? item.label ?? item.name ?? "제목 없음"),
+        label: String(item.title ?? item.label ?? item.name ?? translate("common.document.untitled")),
         deletedAt: Number.isFinite(deletedAt) ? deletedAt : Date.now(),
     };
 }
@@ -261,7 +262,7 @@ const layoutSlice = createSlice({
 
             const child: FolderItem = {
                 id: childId,
-                label: title ?? "새 문서",
+                label: title ?? translate("common.document.newTitle"),
                 key: `folder:${childId}`,
                 docId: childId,
             };
@@ -294,7 +295,7 @@ const layoutSlice = createSlice({
             state.recentDocIds = state.recentDocIds.filter((id) => id !== pageId);
             state.pinnedDocIds = state.pinnedDocIds.filter((id) => id !== pageId);
 
-            const label = result.removed.label || "제목 없음";
+            const label = result.removed.label || translate("common.document.untitled");
             state.trashItems = [
                 { id: pageId, label, deletedAt: Date.now() },
                 ...state.trashItems.filter((t) => t.id !== pageId),
@@ -320,14 +321,19 @@ const layoutSlice = createSlice({
                 id: pageId,
                 docId: pageId,
                 key: `folder:${pageId}` as LnbActiveKey,
-                label: item.label || "복구된 페이지",
+                label: item.label || translate("common.document.restoredTitle"),
             };
 
             const inserted = addChildById(state.folders, "my", restored);
             if (!inserted) {
                 state.folders = [
                     ...state.folders,
-                    { id: "my", label: "모든 문서", icon: "allDocs", children: [restored] },
+                    {
+                        id: "my",
+                        label: translate("layout.sidebar.root.allDocuments"),
+                        icon: "allDocs",
+                        children: [restored],
+                    },
                 ];
             }
 
@@ -392,7 +398,7 @@ const layoutSlice = createSlice({
             state.folders = [
                 {
                     id: "my",
-                    label: "모든 문서",
+                    label: translate("layout.sidebar.root.allDocuments"),
                     icon: "allDocs",
                     children: nextChildren,
                 },
@@ -422,7 +428,7 @@ export const createChildPage = createAsyncThunk<
   try {
     const response = await pagesApi.createPage({
       parentId,
-      title: "새 문서",
+      title: translate("common.document.newTitle"),
     });
 
     const documentId = response.id;
@@ -434,7 +440,7 @@ export const createChildPage = createAsyncThunk<
       layoutActions.addChildPage({
         parentId,
         childId: documentId,
-        title: response.title ?? "새 문서",
+        title: response.title ?? translate("common.document.newTitle"),
       })
     );
 
@@ -442,7 +448,7 @@ export const createChildPage = createAsyncThunk<
 
     upsertCatalogItem({
       id: documentId,
-      title: response.title ?? "새 문서",
+      title: response.title ?? translate("common.document.newTitle"),
       accent: "#c7d7ff",
       kind: "documents",
       createdAt: response.createdAt ?? findDocById(documentId)?.createdAt,
@@ -504,7 +510,7 @@ export const movePageToTrashRemote = createAsyncThunk<
   try {
     await pagesApi.moveToTrash(pageId);
     dispatch(layoutActions.movePageToTrash({ pageId }));
-    dispatch(uiActions.showToast({ message: "삭제되었습니다.", duration: 3000 }));
+    dispatch(uiActions.showToast({ message: translate("layout.toast.deleted"), duration: 3000 }));
   } catch (e) {
     const msg = e instanceof Error ? e.message : "move to trash failed";
     return rejectWithValue(msg);

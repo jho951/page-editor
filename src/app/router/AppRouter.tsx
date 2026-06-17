@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import type { AppDispatch } from "@app/store/store.ts";
 import { useTheme } from "@app/provider/useTheme.ts";
 
@@ -74,6 +75,7 @@ function AppRouter() {
     const location = useLocation();
 
     const navigate = useNavigate();
+    const { t } = useI18n();
     const { toggleTheme } = useTheme();
 
     useEffect(() => {
@@ -190,7 +192,7 @@ function AppRouter() {
                     className={styles.mobileOverlay}
                     role="dialog"
                     aria-modal="true"
-                    aria-label="메뉴"
+                    aria-label={t("app.mobileMenu.aria")}
                 >
                     <div className={styles.mobileOverlayPanel}>
                         <div className={styles.mobileOverlayHeader}>
@@ -201,7 +203,7 @@ function AppRouter() {
                                 type="button"
                                 className={styles.mobileOverlayClose}
                                 onClick={() => setMobileMenuOpen(false)}
-                                aria-label="메뉴 닫기"
+                                aria-label={t("app.mobileMenu.close")}
                             >
                                 <span className={styles.mobileOverlayCloseBar} />
                                 <span className={styles.mobileOverlayCloseBar} />

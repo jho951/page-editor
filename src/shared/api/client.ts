@@ -28,8 +28,7 @@ export const API_BASE_URL: string = GATEWAY_BASE_URL;
 export const DOCUMENTS_API_BASE_URL: string =
     (typeof import.meta !== 'undefined' &&
         (import.meta as unknown as { env?: { VITE_DOCUMENTS_API_BASE_URL?: string } })
-            .env?.VITE_DOCUMENTS_API_BASE_URL) ||
-    GATEWAY_BASE_URL;
+            .env?.VITE_DOCUMENTS_API_BASE_URL) || GATEWAY_BASE_URL;
 
 /** 일반 공통 axios 인스턴스입니다. */
 export const http: AxiosInstance = axios.create({

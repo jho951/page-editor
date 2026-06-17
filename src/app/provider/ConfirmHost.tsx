@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import { uiActions } from "@app/state/ui.slice.ts";
 
@@ -13,6 +14,7 @@ import styles from "./ConfirmHost.module.css";
 function ConfirmHost(): React.ReactElement | null {
   const dispatch = useAppDispatch();
   const confirm = useAppSelector((state) => state.ui.confirm);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!confirm.open) return;
@@ -34,7 +36,7 @@ function ConfirmHost(): React.ReactElement | null {
       <button
         type="button"
         className={styles.backdrop}
-        aria-label="닫기"
+        aria-label={t("profile.dialog.closeAria")}
         onClick={() => dispatch(uiActions.closeConfirm())}
       />
       <div

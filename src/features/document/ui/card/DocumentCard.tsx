@@ -3,22 +3,28 @@
  */
 
 import React, { useRef } from "react";
+import { useI18n } from "@app/provider/useI18n.ts";
 import type {DocumentCardProps} from "@features/document/ui/card/DocumentCard.types.ts";
 
 import { Button } from "@jho951/ui-components";
 
 import styles from "./DocumentCard.module.css";
 
-function formatCreatedAt(createdAt: string | null | undefined): string {
-    if (!createdAt) return "문서";
+function formatCreatedAt(
+    createdAt: string | null | undefined,
+    fallbackText: string,
+    formatDateTime: (value: number | string | Date, options?: Intl.DateTimeFormatOptions) => string,
+): string {
+    if (!createdAt) return fallbackText;
 
     const parsed = new Date(createdAt);
-    if (Number.isNaN(parsed.getTime())) return "문서";
+    if (Number.isNaN(parsed.getTime())) return fallbackText;
 
-    const year = String(parsed.getFullYear());
-    const month = String(parsed.getMonth() + 1).padStart(2, "0");
-    const day = String(parsed.getDate()).padStart(2, "0");
-    return `${year}.${month}.${day}`;
+    return formatDateTime(parsed, {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
 }
 
 function previewClassName(blockType: "paragraph" | "heading1" | "heading2" | "heading3"): string {
@@ -42,6 +48,7 @@ function previewClassName(blockType: "paragraph" | "heading1" | "heading2" | "he
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function DocumentCard({ item, onClick, variant = "grid", preview, previewState = "idle" }: DocumentCardProps): React.ReactElement {
+    const { formatDateTime, t } = useI18n();
 
     const startPos = useRef({ x: 0, y: 0 });
 
@@ -67,12 +74,14 @@ function DocumentCard({ item, onClick, variant = "grid", preview, previewState =
                 className={styles.cardFrame}
                 style={{ "--accent": item.accent } as React.CSSProperties}
             >
-                <div className={styles.cardTop}>
-                    <div className={styles.titleArea}>
-                        <div className={styles.cardTitle}>{item.title}</div>
-                        <div className={styles.subTitle}>{formatCreatedAt(item.createdAt)}</div>
+                    <div className={styles.cardTop}>
+                        <div className={styles.titleArea}>
+                            <div className={styles.cardTitle}>{item.title}</div>
+                        <div className={styles.subTitle}>
+                            {formatCreatedAt(item.createdAt, t("document.card.typeLabel"), formatDateTime)}
+                        </div>
+                        </div>
                     </div>
-                </div>
 
                 <div className={styles.preview}>
                     {hasPreview ? (
@@ -87,7 +96,7 @@ function DocumentCard({ item, onClick, variant = "grid", preview, previewState =
                             ))}
                         </div>
                     ) : showEmptyPreview ? (
-                        <div className={styles.previewEmpty}>본문 미리보기가 없습니다.</div>
+                        <div className={styles.previewEmpty}>{t("document.card.previewEmpty")}</div>
                     ) : (
                         <div className={styles.skeleton}>
                             <div className={styles.previewLine} />

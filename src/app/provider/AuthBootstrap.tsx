@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import {
   bootstrapAuth,
@@ -16,6 +17,7 @@ import type { AuthBootstrapProps } from "@app/provider/AuthBootstrap.types.ts";
  */
 function AuthBootstrap({ children }: AuthBootstrapProps): React.ReactElement {
   const bypassAuth = import.meta.env.VITE_BYPASS_AUTH === "true";
+  const { t } = useI18n();
   const dispatch = useAppDispatch();
   const initialized = useAppSelector(selectAuthInitialized);
   const status = useAppSelector(selectAuthStatus);
@@ -33,7 +35,7 @@ function AuthBootstrap({ children }: AuthBootstrapProps): React.ReactElement {
   }
 
   if (!shouldSkipBootstrap && (!initialized || status === "loading")) {
-    return <div style={{ padding: 32 }}>인증 상태를 확인하는 중입니다...</div>;
+    return <div style={{ padding: 32 }}>{t("auth.gate.checking")}</div>;
   }
 
   return <>{children}</>;

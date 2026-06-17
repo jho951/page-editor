@@ -355,6 +355,14 @@
     border: 1px solid rgba(var(--color-black-rgb), 0.04);
 }
 
+.themeSegmentedControl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    padding: 6px;
+    border-radius: 22px;
+}
+
 .segmentButton {
     min-width: 74px;
     height: 34px;
@@ -368,6 +376,14 @@
     white-space: nowrap;
     cursor: pointer;
     transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.themeSegmentButton {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    border-radius: 16px;
 }
 
 .segmentButtonActive {

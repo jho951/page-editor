@@ -2,9 +2,10 @@
  * Home View 화면을 구성하는 뷰 컴포넌트입니다.
  */
 
-import React, { useDeferredValue, useEffect, useState } from "react";
+import React, { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "@jho951/ui-components";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch } from "@app/store/hooks.ts";
 import { uiActions } from "@app/state/ui.slice.ts";
 
@@ -30,14 +31,14 @@ function toCardItem(id: string, title: string, createdAt?: string, index = 0): D
     };
 }
 
-function buildSpotlightPreview(preview?: DocCardPreviewItem[]): string {
+function buildSpotlightPreview(preview: DocCardPreviewItem[] | undefined, emptyText: string): string {
     const text = (preview ?? [])
         .map((item) => item.text.trim())
         .filter(Boolean)
         .join(" ");
 
     if (!text) {
-        return "아직 본문 미리보기가 없습니다. 새 문서를 만들어 첫 아이디어를 적어보세요.";
+        return emptyText;
     }
 
     return text.length > 144 ? `${text.slice(0, 144).trim()}...` : text;
@@ -50,6 +51,7 @@ function buildSpotlightPreview(preview?: DocCardPreviewItem[]): string {
 function HomeView(): React.ReactElement {
 
     const navigate = useNavigate();
+    const { formatNumber, t } = useI18n();
     const dispatch = useAppDispatch();
     const [catalogDocs, setCatalogDocs] = useState<DocCardItem[]>(() => getAllDocs());
     const [previewById, setPreviewById] = useState<Record<string, DocCardPreviewItem[]>>({});
@@ -90,7 +92,10 @@ function HomeView(): React.ReactElement {
         };
     }, []);
 
-    const previewDocIds = catalogDocs.map((doc) => doc.id);
+    const previewDocIds = useMemo(
+        () => catalogDocs.map((doc) => doc.id),
+        [catalogDocs],
+    );
     const deferredSearchQuery = useDeferredValue(searchQuery);
 
     useEffect(() => {
@@ -140,22 +145,38 @@ function HomeView(): React.ReactElement {
         };
     }, [previewDocIds, previewStateById]);
 
-    const normalizedSearch = deferredSearchQuery.trim().toLocaleLowerCase();
+    const normalizedSearch = useMemo(
+        () => deferredSearchQuery.trim().toLocaleLowerCase(),
+        [deferredSearchQuery],
+    );
 
-    const filteredDocs = normalizedSearch
-        ? catalogDocs.filter((doc) => {
+    const filteredDocs = useMemo(() => {
+        if (!normalizedSearch) return catalogDocs;
+
+        return catalogDocs.filter((doc) => {
             const previewText = (previewById[doc.id] ?? [])
                 .map((item) => item.text)
                 .join(" ")
                 .toLocaleLowerCase();
 
             return doc.title.toLocaleLowerCase().includes(normalizedSearch) || previewText.includes(normalizedSearch);
-        })
-        : catalogDocs;
+        });
+    }, [catalogDocs, normalizedSearch, previewById]);
 
-    const spotlightDoc = filteredDocs[0] ?? catalogDocs[0] ?? null;
-    const spotlightPreview = spotlightDoc ? buildSpotlightPreview(previewById[spotlightDoc.id]) : "문서를 불러오면 가장 최근 작업이 이곳에 표시됩니다.";
-    const activeViewLabel = viewMode === "grid" ? "카드 뷰" : "리스트 뷰";
+    const spotlightDoc = useMemo(
+        () => filteredDocs[0] ?? catalogDocs[0] ?? null,
+        [catalogDocs, filteredDocs],
+    );
+    const spotlightPreview = useMemo(
+        () => spotlightDoc
+            ? buildSpotlightPreview(previewById[spotlightDoc.id], t("home.preview.empty"))
+            : t("home.spotlight.fallback"),
+        [previewById, spotlightDoc, t],
+    );
+    const activeViewLabel = useMemo(
+        () => (viewMode === "grid" ? t("common.view.gridMode") : t("common.view.listMode")),
+        [t, viewMode],
+    );
 
     const onCreatePage = () => {
         dispatch(createChildPage({ parentId: "my" })).then((action) => {
@@ -198,19 +219,19 @@ function HomeView(): React.ReactElement {
                 y: event.clientY,
                 items: [
                     {
-                        label: "새 문서",
+                        label: t("common.actions.create"),
                         onClick: () => {
                             onCreateChildPage(doc.id);
                         },
                     },
                     {
-                        label: "새 탭에서 열기",
+                        label: t("common.actions.openInNewTab"),
                         onClick: () => {
                             window.open(`/doc/${doc.id}`, "_blank", "noopener,noreferrer");
                         },
                     },
                     {
-                        label: "삭제",
+                        label: t("common.actions.delete"),
                         onClick: () => {
                             void onMoveToTrash(doc.id);
                         },
@@ -224,16 +245,16 @@ function HomeView(): React.ReactElement {
     return (
         <div className={styles.page}>
             <DocumentsPageHeader
-                title="안녕하세요."
+                title={t("home.greeting")}
                 viewMode={viewMode}
                 onChangeViewMode={setViewMode}
             />
 
             <section className={styles.spotlight}>
                 <div className={styles.spotlightContent}>
-                    <span className={styles.kicker}>Spotlight</span>
+                    <span className={styles.kicker}>{t("home.spotlight.label")}</span>
                     <h3 className={styles.spotlightTitle}>
-                        {spotlightDoc ? spotlightDoc.title : "새 문서에서 작업을 시작해 보세요."}
+                        {spotlightDoc ? spotlightDoc.title : t("home.spotlight.emptyTitle")}
                     </h3>
                     <p className={styles.spotlightText}>{spotlightPreview}</p>
                 </div>
@@ -249,10 +270,10 @@ function HomeView(): React.ReactElement {
                             onCreatePage();
                         }}
                     >
-                        {spotlightDoc ? "최근 문서 열기" : "첫 문서 만들기"}
+                        {spotlightDoc ? t("home.spotlight.openRecent") : t("home.spotlight.createFirst")}
                     </button>
                     <button type="button" className={styles.spotlightSecondary} onClick={onCreatePage}>
-                        새 초안 추가
+                        {t("home.spotlight.addDraft")}
                     </button>
                 </div>
             </section>
@@ -261,12 +282,12 @@ function HomeView(): React.ReactElement {
                 <div className={styles.sectionHeader}>
                     <div className={styles.sectionHeaderLeft}>
                         <div>
-                            <div className={styles.sectionEyebrow}>Document Catalog</div>
-                            <div className={styles.sectionTitle}>저장된 문서</div>
+                            <div className={styles.sectionEyebrow}>{t("home.section.eyebrow")}</div>
+                            <div className={styles.sectionTitle}>{t("home.section.title")}</div>
                         </div>
                         <div className={styles.metaRow}>
                             <span className={styles.metaPill}>
-                                {filteredDocs.length.toLocaleString("ko-KR")}개 표시
+                                {t("home.meta.count", { count: formatNumber(filteredDocs.length) })}
                             </span>
                             <span className={styles.metaPill}>{activeViewLabel}</span>
                         </div>
@@ -278,15 +299,15 @@ function HomeView(): React.ReactElement {
                                 className={styles.clearButton}
                                 onClick={() => setSearchQuery("")}
                             >
-                                검색 지우기
+                                {t("home.search.clear")}
                             </button>
                         ) : null}
                         <button
                             type="button"
                             className={styles.addButton}
                             onClick={onCreatePage}
-                            aria-label="새 문서 생성"
-                            title="새 문서 생성"
+                            aria-label={t("common.actions.create")}
+                            title={t("common.actions.create")}
                         >
                             <Icon name="plus" source="url" basePath="/icons" size={16} />
                         </button>
@@ -307,10 +328,10 @@ function HomeView(): React.ReactElement {
                     {filteredDocs.length === 0 && (
                         <div className={styles.empty}>
                             {loading
-                                ? "문서를 불러오는 중입니다."
+                                ? t("home.section.loading")
                                 : searchQuery.trim()
-                                  ? "검색 결과가 없습니다."
-                                  : "저장된 문서가 없습니다."}
+                                  ? t("home.search.empty")
+                                  : t("home.section.empty")}
                         </div>
                     )}
                 </div>

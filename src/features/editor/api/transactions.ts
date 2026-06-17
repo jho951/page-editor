@@ -5,6 +5,7 @@
 import { DOCUMENTS_API_BASE_URL, documentsApi } from "@shared/api/client.ts";
 import type { HttpError } from "@shared/api/client.types.ts";
 import { endpoints } from "@shared/api/endpoints.ts";
+import { translate } from "@shared/i18n/runtime.ts";
 import { unwrapApiEnvelope } from "@shared/api/service-contract.ts";
 import type {
   ApiEnvelope,
@@ -276,7 +277,7 @@ function getLocalDocument(documentId: string): EditorDocumentSnapshot {
   const rootBlockId = `root-${documentId}`;
   const next: EditorDocumentSnapshot = {
     id: documentId,
-    title: `Untitled ${documentId}`,
+    title: `${translate("common.document.untitled")} ${documentId}`,
     version: 1,
     rootBlockId,
     blocks: [

@@ -4,6 +4,7 @@
 
 import React from "react";
 import { Button } from "@jho951/ui-components";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { redirectToSsoStart } from "@features/auth/lib/authNavigation.ts";
 import type { AuthRequiredProps } from "@features/auth/ui/AuthRequired.types.ts";
 import styles from "@features/auth/ui/AuthRequired.module.css";
@@ -15,13 +16,15 @@ import styles from "@features/auth/ui/AuthRequired.module.css";
  * @returns 렌더링할 React 엘리먼트를 반환합니다.
  */
 function AuthRequired({ nextPath, error }: AuthRequiredProps): React.ReactElement {
+  const { t } = useI18n();
+
   return (
     <div className={styles.wrap}>
-      <section className={styles.panel} aria-label="로그인 필요">
-        <p className={styles.eyebrow}>SSO Sign-In</p>
-        <h1 className={styles.title}>로그인이 필요합니다.</h1>
+      <section className={styles.panel} aria-label={t("auth.required.aria")}>
+        <p className={styles.eyebrow}>{t("auth.required.eyebrow")}</p>
+        <h1 className={styles.title}>{t("auth.required.title")}</h1>
         <p className={styles.desc}>
-          시작 프론트에서 로그인을 시작하면 SSO 서버가 인증을 처리하고, 이 서비스는 발급된 세션만 사용합니다.
+          {t("auth.required.description")}
         </p>
         {error ? <p className={styles.error}>{error}</p> : null}
         <div className={styles.actions}>
@@ -32,7 +35,7 @@ function AuthRequired({ nextPath, error }: AuthRequiredProps): React.ReactElemen
               redirectToSsoStart(nextPath, "assign");
             }}
           >
-            SSO 로그인 시작
+            {t("auth.required.button")}
           </Button>
         </div>
       </section>

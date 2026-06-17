@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useTheme } from "@app/provider/useTheme.ts";
 
 import type { GnbProps } from "@features/layout/ui/gnb/Gnb.types.ts";
@@ -26,20 +27,9 @@ import styles from "./Gnb.module.css";
 
 type HeaderMode = "default" | "docText";
 type ProfileDialogMode = "settings" | "profile" | null;
-type AppLanguage = "ko" | "en";
 
 const PROFILE_AVATAR_STORAGE_KEY = "editor.profile-avatar";
 const PROFILE_AVATAR_REMOVED_SENTINEL = "__none__";
-const APP_LANGUAGE_STORAGE_KEY = "editor.language";
-
-function getInitialLanguage(): AppLanguage {
-  if (typeof window === "undefined") return "ko";
-
-  const stored = window.localStorage.getItem(APP_LANGUAGE_STORAGE_KEY);
-  if (stored === "ko" || stored === "en") return stored;
-
-  return window.navigator.language.toLowerCase().startsWith("ko") ? "ko" : "en";
-}
 
 function readStoredAvatar(): string | null | undefined {
   if (typeof window === "undefined") return undefined;
@@ -76,7 +66,8 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
 
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectAuthUser);
-  const { theme, resolvedTheme, setTheme } = useTheme();
+  const { language, setLanguage, t } = useI18n();
+  const { theme, setTheme } = useTheme();
 
   const isDocRoute = location.pathname.startsWith("/doc/");
 
@@ -87,7 +78,6 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
   const [emailDraft, setEmailDraft] = useState("");
   const [avatarImageUrl, setAvatarImageUrl] = useState<string | null>(() => readStoredAvatar() ?? null);
   const [avatarDraftImageUrl, setAvatarDraftImageUrl] = useState<string | null>(null);
-  const [language, setLanguage] = useState<AppLanguage>(() => getInitialLanguage());
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const isPinned = id && isDocRoute ? pinnedDocIds.includes(id) : false;
@@ -119,18 +109,12 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [dialogMode]);
 
-  useEffect(() => {
-    if (typeof document === "undefined" || typeof window === "undefined") return;
-
-    document.documentElement.lang = language;
-    window.localStorage.setItem(APP_LANGUAGE_STORAGE_KEY, language);
-  }, [language]);
-
   const derivedName = user?.name ?? (!String(profileLabel).includes("@") ? String(profileLabel) : "");
   const derivedEmail = user?.email ?? (String(profileLabel).includes("@") ? String(profileLabel) : "");
   const avatarInitial = String(profileLabel || "U").slice(0, 1).toUpperCase();
-  const resolvedThemeLabel = resolvedTheme === "dark" ? "어두운 테마" : "밝은 테마";
-  const languageLabel = language === "ko" ? "한국어" : "영어";
+  const languageLabel = language === "ko"
+    ? t("common.language.korean")
+    : t("common.language.english");
 
   const onTogglePinned = useCallback(() => {
     if (!id || !isDocRoute) return;
@@ -186,8 +170,8 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
     setAvatarImageUrl(avatarDraftImageUrl);
     persistAvatar(avatarDraftImageUrl);
     setDialogMode(null);
-    dispatch(uiActions.showToast({ message: "내 정보 미리보기를 업데이트했습니다." }));
-  }, [avatarDraftImageUrl, dispatch, emailDraft, nameDraft]);
+    dispatch(uiActions.showToast({ message: t("profile.dialog.profile.updated") }));
+  }, [avatarDraftImageUrl, dispatch, emailDraft, nameDraft, t]);
 
   const onOpenAvatarPicker = useCallback(() => {
     avatarInputRef.current?.click();
@@ -200,7 +184,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      dispatch(uiActions.showToast({ message: "이미지 파일만 선택할 수 있습니다." }));
+      dispatch(uiActions.showToast({ message: t("profile.toast.imageOnly") }));
       return;
     }
 
@@ -210,7 +194,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
       setAvatarDraftImageUrl(reader.result);
     };
     reader.readAsDataURL(file);
-  }, [dispatch]);
+  }, [dispatch, t]);
 
   const onRemoveAvatar = useCallback(() => {
     setAvatarDraftImageUrl(null);
@@ -225,14 +209,13 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
           x: rect.right,
           y: rect.bottom + 8,
           items: [
-            { label: "로그아웃", onClick: onLogout },
-            { label: "설정", onClick: onOpenSettingsDialog },
-            { label: "내 정보 수정", onClick: onOpenProfileDialog },
+            { label: t("profile.menu.logout"), onClick: onLogout },
+            { label: t("profile.menu.settings"), onClick: onOpenSettingsDialog },
           ],
         })
       );
     },
-    [dispatch, onLogout, onOpenProfileDialog, onOpenSettingsDialog]
+    [dispatch, onLogout, onOpenSettingsDialog, t]
   );
 
   const headerMode: HeaderMode = (() => {
@@ -241,7 +224,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
   })();
 
     return (
-    <header className={styles.gnbWrap} aria-label="Top bar">
+    <header className={styles.gnbWrap} aria-label={t("layout.sidebar.topBar")}>
       <div className={styles.gnbLeft}>
         <Button
           type="button"
@@ -249,7 +232,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
           size="s"
           className={styles.mobileLogoBtn}
           onClick={onOpenMobileMenu}
-          aria-label="메뉴 열기"
+          aria-label={t("common.actions.openMenu")}
         >
           <Icon name="logo" source="url" basePath="/icons" size={40} />
         </Button>
@@ -264,7 +247,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
               size="s"
               className={`${styles.iconActionBtn} ${styles.favoriteBtn} ${isPinned ? styles.favoriteBtnActive : ""}`}
               onClick={onTogglePinned}
-              title={isPinned ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+              title={isPinned ? t("document.detail.actions.unpin") : t("document.detail.actions.pin")}
               aria-pressed={isPinned}
             >
               <Icon name="star" size={22} />
@@ -275,8 +258,8 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
               size="s"
               className={`${styles.iconActionBtn} ${styles.trashBtn}`}
               onClick={onMoveToTrash}
-              title="휴지통으로 이동"
-              aria-label="휴지통으로 이동"
+              title={t("document.detail.actions.moveToTrash")}
+              aria-label={t("document.detail.actions.moveToTrash")}
             >
               <Icon name="trash" source="url" basePath="/icons" size={19} />
             </Button>
@@ -288,7 +271,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
           size="s"
           className={styles.menuBtn}
           onClick={onOpenProfileMenu}
-          aria-label="Open profile menu"
+          aria-label={t("profile.menu.open")}
         >
           <span className={styles.avatar} aria-hidden="true">
             {avatarImageUrl ? (
@@ -304,7 +287,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
           <button
             type="button"
             className={styles.dialogBackdrop}
-            aria-label="모달 닫기"
+            aria-label={t("profile.dialog.closeAria")}
             onClick={onCloseDialog}
           />
           <div
@@ -317,22 +300,26 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
             <div className={styles.dialogHeader}>
               <div className={styles.dialogHeading}>
                 <span className={styles.dialogEyebrow}>
-                  {dialogMode === "settings" ? "Workspace" : "Profile"}
+                  {dialogMode === "settings"
+                    ? t("profile.dialog.settings.eyebrow")
+                    : t("profile.dialog.profile.eyebrow")}
                 </span>
                 <h2 id="profile-dialog-title" className={styles.dialogTitle}>
-                  {dialogMode === "settings" ? "설정" : "내 정보 수정"}
+                  {dialogMode === "settings"
+                    ? t("profile.dialog.settings.title")
+                    : t("profile.dialog.profile.title")}
                 </h2>
                 <p id="profile-dialog-description" className={styles.dialogDescription}>
                   {dialogMode === "settings"
-                    ? "워크스페이스에서 바로 바꿀 수 있는 기본 설정입니다."
-                    : "표시 이름과 연락용 이메일을 이 세션 기준으로 업데이트합니다."}
+                    ? t("profile.dialog.settings.description")
+                    : t("profile.dialog.profile.description")}
                 </p>
               </div>
               <button
                 type="button"
                 className={styles.dialogCloseButton}
                 onClick={onCloseDialog}
-                aria-label="닫기"
+                aria-label={t("profile.dialog.closeAria")}
               >
                 ×
               </button>
@@ -342,9 +329,9 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
               <div className={styles.dialogBody}>
                 <section className={styles.settingsPanel}>
                   <div className={styles.settingsPanelHeader}>
-                    <strong className={styles.settingsPanelTitle}>계정 설정</strong>
+                    <strong className={styles.settingsPanelTitle}>{t("profile.dialog.settings.account.title")}</strong>
                     <span className={styles.settingsPanelDescription}>
-                      현재 계정 상태를 확인하고 프로필 편집 모달로 이동할 수 있습니다.
+                      {t("profile.dialog.settings.account.description")}
                     </span>
                   </div>
 
@@ -359,21 +346,21 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
                       </span>
                       <div className={styles.sectionCopy}>
                         <strong className={styles.sectionTitle}>
-                          {derivedName || "워크스페이스 사용자"}
+                          {derivedName || t("profile.dialog.profile.nameDefault")}
                         </strong>
                         <span className={styles.sectionDescription}>
-                          {derivedEmail || "로그인 사용자 정보가 없습니다."}
+                          {derivedEmail || t("profile.dialog.profile.missingEmail")}
                         </span>
                       </div>
                     </div>
                     <div className={styles.settingsInlineActions}>
-                      <span className={styles.statusBadge}>활성</span>
+                      <span className={styles.statusBadge}>{t("profile.dialog.settings.status.active")}</span>
                       <button
                         type="button"
                         className={styles.secondaryInlineButton}
                         onClick={onOpenProfileDialog}
                       >
-                        내 정보 수정
+                        {t("profile.menu.edit")}
                       </button>
                     </div>
                   </div>
@@ -381,62 +368,60 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
 
                 <section className={styles.settingsPanel}>
                   <div className={styles.settingsPanelHeader}>
-                    <strong className={styles.settingsPanelTitle}>시스템 설정</strong>
+                    <strong className={styles.settingsPanelTitle}>{t("profile.dialog.settings.system.title")}</strong>
                     <span className={styles.settingsPanelDescription}>
-                      테마와 언어 선호값을 현재 브라우저 기준으로 즉시 적용합니다.
+                      {t("profile.dialog.settings.system.description")}
                     </span>
                   </div>
 
                   <div className={styles.dialogSection}>
-                    <div className={styles.sectionCopy}>
-                      <strong className={styles.sectionTitle}>테마</strong>
-                      <span className={styles.sectionDescription}>
-                        시스템 설정을 따르거나 직접 밝기 테마를 고를 수 있습니다. 현재 {resolvedThemeLabel} 적용 중
-                      </span>
-                    </div>
-                    <div className={styles.segmentedControl} role="group" aria-label="테마 선택">
+                    <div
+                      className={`${styles.segmentedControl} ${styles.themeSegmentedControl}`}
+                      role="group"
+                      aria-label={t("profile.dialog.settings.theme.aria")}
+                    >
                       <button
                         type="button"
-                        className={`${styles.segmentButton} ${theme === "system" ? styles.segmentButtonActive : ""}`}
+                        className={`${styles.segmentButton} ${styles.themeSegmentButton} ${theme === "system" ? styles.segmentButtonActive : ""}`}
                         onClick={() => setTheme("system")}
                         aria-pressed={theme === "system"}
                       >
-                        시스템 설정
+                        {t("profile.dialog.settings.theme.system")}
                       </button>
                       <button
                         type="button"
-                        className={`${styles.segmentButton} ${theme === "light" ? styles.segmentButtonActive : ""}`}
+                        className={`${styles.segmentButton} ${styles.themeSegmentButton} ${theme === "light" ? styles.segmentButtonActive : ""}`}
                         onClick={() => setTheme("light")}
                         aria-pressed={theme === "light"}
                       >
-                        밝은 테마
+                        {t("profile.dialog.settings.theme.light")}
                       </button>
                       <button
                         type="button"
-                        className={`${styles.segmentButton} ${theme === "dark" ? styles.segmentButtonActive : ""}`}
+                        className={`${styles.segmentButton} ${styles.themeSegmentButton} ${theme === "dark" ? styles.segmentButtonActive : ""}`}
                         onClick={() => setTheme("dark")}
                         aria-pressed={theme === "dark"}
                       >
-                        어두운 테마
+                        {t("profile.dialog.settings.theme.dark")}
                       </button>
                     </div>
                   </div>
 
                   <div className={styles.dialogSection}>
                     <div className={styles.sectionCopy}>
-                      <strong className={styles.sectionTitle}>언어</strong>
+                      <strong className={styles.sectionTitle}>{t("profile.dialog.settings.language.title")}</strong>
                       <span className={styles.sectionDescription}>
-                        앱 기본 언어 선호값을 저장합니다. 현재 {languageLabel}
+                        {t("profile.dialog.settings.language.description", { language: languageLabel })}
                       </span>
                     </div>
-                    <div className={styles.segmentedControl} role="group" aria-label="언어 선택">
+                    <div className={styles.segmentedControl} role="group" aria-label={t("profile.dialog.settings.language.aria")}>
                       <button
                         type="button"
                         className={`${styles.segmentButton} ${language === "en" ? styles.segmentButtonActive : ""}`}
                         onClick={() => setLanguage("en")}
                         aria-pressed={language === "en"}
                       >
-                        영어
+                        {t("common.language.english")}
                       </button>
                       <button
                         type="button"
@@ -444,7 +429,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
                         onClick={() => setLanguage("ko")}
                         aria-pressed={language === "ko"}
                       >
-                        한국어
+                        {t("common.language.korean")}
                       </button>
                     </div>
                   </div>
@@ -456,7 +441,7 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
                     className={styles.secondaryButton}
                     onClick={onCloseDialog}
                   >
-                    닫기
+                    {t("common.actions.close")}
                   </button>
                 </div>
               </div>
@@ -476,26 +461,26 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
                       className={styles.avatarEditButton}
                       onClick={onOpenAvatarPicker}
                     >
-                      이미지 변경
+                      {t("profile.dialog.avatar.change")}
                     </button>
                   </div>
                   <div className={styles.profileSummary}>
-                    <strong>{nameDraft.trim() || derivedName || "워크스페이스 사용자"}</strong>
-                    <span>{emailDraft.trim() || derivedEmail || "이메일을 입력해 주세요."}</span>
+                    <strong>{nameDraft.trim() || derivedName || t("profile.dialog.profile.nameDefault")}</strong>
+                    <span>{emailDraft.trim() || derivedEmail || t("profile.dialog.profile.missingEmail")}</span>
                     <div className={styles.avatarActions}>
                       <button
                         type="button"
                         className={styles.secondaryInlineButton}
                         onClick={onOpenAvatarPicker}
                       >
-                        파일 선택
+                        {t("profile.dialog.avatar.select")}
                       </button>
                       <button
                         type="button"
                         className={styles.ghostInlineButton}
                         onClick={onRemoveAvatar}
                       >
-                        제거
+                        {t("profile.dialog.avatar.remove")}
                       </button>
                     </div>
                   </div>
@@ -510,36 +495,36 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
                 />
 
                 <label className={styles.field}>
-                  <span className={styles.fieldLabel}>이름</span>
+                  <span className={styles.fieldLabel}>{t("profile.dialog.profile.nameLabel")}</span>
                   <input
                     type="text"
                     className={styles.fieldInput}
                     value={nameDraft}
                     onChange={(event) => setNameDraft(event.target.value)}
-                    placeholder="이름 입력"
+                    placeholder={t("profile.dialog.profile.namePlaceholder")}
                   />
                 </label>
 
                 <label className={styles.field}>
-                  <span className={styles.fieldLabel}>이메일</span>
+                  <span className={styles.fieldLabel}>{t("profile.dialog.profile.emailLabel")}</span>
                   <input
                     type="email"
                     className={styles.fieldInput}
                     value={emailDraft}
                     onChange={(event) => setEmailDraft(event.target.value)}
-                    placeholder="name@example.com"
+                    placeholder={t("profile.dialog.profile.emailPlaceholder")}
                   />
                 </label>
 
                 {user?.id ? (
                   <div className={styles.metaRow}>
-                    <span className={styles.metaLabel}>사용자 ID</span>
+                    <span className={styles.metaLabel}>{t("profile.dialog.profile.userId")}</span>
                     <span className={styles.metaValue}>{user.id}</span>
                   </div>
                 ) : null}
 
                 <p className={styles.dialogNote}>
-                  저장하면 현재 브라우저에서 프로필 이미지와 표시 정보가 함께 반영됩니다.
+                  {t("profile.dialog.profile.note")}
                 </p>
 
                 <div className={styles.dialogActions}>
@@ -548,10 +533,10 @@ function Gnb({ profile, onOpenMobileMenu }: GnbProps): React.ReactElement {
                     className={styles.secondaryButton}
                     onClick={onCloseDialog}
                   >
-                    취소
+                    {t("common.actions.cancel")}
                   </button>
                   <button type="submit" className={styles.primaryButton}>
-                    저장
+                    {t("common.actions.save")}
                   </button>
                 </div>
               </form>

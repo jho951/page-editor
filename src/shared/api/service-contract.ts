@@ -7,7 +7,7 @@ export type ApiEnvelope<T> = {
   success?: boolean;
   message?: string;
   code?: number;
-  data?: T | null;
+  data?: T | ApiEnvelope<T> | null;
   items?: T;
   rows?: T;
 };
@@ -101,12 +101,28 @@ export type EditorMoveResponse = {
  * service-contract envelope 또는 과거 호환 payload에서 실제 data를 꺼냅니다.
  */
 export function unwrapApiEnvelope<T>(payload: T | ApiEnvelope<T>): T {
-  if (payload && typeof payload === "object") {
-    const envelope = payload as ApiEnvelope<T>;
-    if (envelope.data !== undefined) return envelope.data as T;
-    if (envelope.items !== undefined) return envelope.items;
-    if (envelope.rows !== undefined) return envelope.rows;
+  let current: unknown = payload;
+
+  while (current && typeof current === "object" && !Array.isArray(current)) {
+    const envelope = current as ApiEnvelope<unknown>;
+
+    if (envelope.data !== undefined) {
+      current = envelope.data;
+      continue;
+    }
+
+    if (envelope.items !== undefined) {
+      current = envelope.items;
+      continue;
+    }
+
+    if (envelope.rows !== undefined) {
+      current = envelope.rows;
+      continue;
+    }
+
+    break;
   }
 
-  return payload as T;
+  return current as T;
 }

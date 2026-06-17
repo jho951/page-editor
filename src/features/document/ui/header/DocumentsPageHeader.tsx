@@ -1,4 +1,5 @@
 import React from "react";
+import { useI18n } from "@app/provider/useI18n.ts";
 
 import type { DocumentsViewMode } from "@features/document/ui/tab/DocumentTab.types.ts";
 
@@ -17,6 +18,8 @@ function DocumentsPageHeader({
     viewMode,
     onChangeViewMode,
 }: DocumentsPageHeaderProps): React.ReactElement {
+    const { t } = useI18n();
+
     return (
         <header className={styles.header}>
             <div className={styles.titleWrap}>
@@ -24,13 +27,13 @@ function DocumentsPageHeader({
                 {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
             </div>
             <div className={styles.headerActions}>
-                <div className={styles.viewToggle} role="group" aria-label={`${title} 보기 방식`}>
+                <div className={styles.viewToggle} role="group" aria-label={t("common.view.modeAria", { title })}>
                     <button
                         type="button"
                         className={`${styles.viewToggleButton} ${viewMode === "list" ? styles.viewToggleButtonActive : ""}`}
                         onClick={() => onChangeViewMode("list")}
                         aria-pressed={viewMode === "list"}
-                        title="리스트로 보기"
+                        title={t("common.view.listTitle")}
                     >
                         <span className={`${styles.toggleIcon} ${styles.toggleIconList}`} aria-hidden="true">
                             <span />
@@ -43,7 +46,7 @@ function DocumentsPageHeader({
                         className={`${styles.viewToggleButton} ${viewMode === "grid" ? styles.viewToggleButtonActive : ""}`}
                         onClick={() => onChangeViewMode("grid")}
                         aria-pressed={viewMode === "grid"}
-                        title="카드로 보기"
+                        title={t("common.view.gridTitle")}
                     >
                         <span className={`${styles.toggleIcon} ${styles.toggleIconGrid}`} aria-hidden="true">
                             <span />

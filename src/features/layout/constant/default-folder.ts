@@ -3,6 +3,7 @@
  */
 
 import type { FolderItem } from "@features/layout/ui/lnb/Lnb.types.ts";
+import { translate } from "@shared/i18n/runtime.ts";
 
 /**
  * LNB에 표시할 기본 폴더 및 페이지 트리입니다.
@@ -10,7 +11,7 @@ import type { FolderItem } from "@features/layout/ui/lnb/Lnb.types.ts";
 export const DEFAULT_FOLDER: FolderItem[] = [
     {
         id: "my",
-        label: "모든 문서",
+        label: translate("layout.sidebar.root.allDocuments"),
         icon: "allDocs",
         children: [],
     },

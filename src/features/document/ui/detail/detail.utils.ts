@@ -1,8 +1,9 @@
+import { translate } from "@shared/i18n/runtime.ts";
 import type { DocumentDetailState } from "@features/document/ui/detail/detail.types.ts";
 
 function normalizeDocumentTitle(title: string | null | undefined): string {
   const nextTitle = String(title ?? "").trim();
-  return nextTitle || "Untitled";
+  return nextTitle || translate("common.document.untitled");
 }
 
 function buildDocumentState(

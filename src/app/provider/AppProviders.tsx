@@ -2,6 +2,7 @@ import React from "react";
 import { Provider as ReduxProvider } from "react-redux";
 
 import { store } from "@app/store/store";
+import { LanguageProvider } from "@app/provider/LanguageProvider";
 import { ThemeProvider } from "@app/provider/ThemeProvider";
 import { ShortcutProvider } from "@app/provider/ShortcutProvider";
 import type { ProvidersProps } from "@app/provider/provider.types";
@@ -10,7 +11,11 @@ import { AuthBootstrap } from "@app/provider/AuthBootstrap.tsx";
 import { ToastHost } from "@app/provider/ToastHost.tsx";
 import { ConfirmHost } from "@app/provider/ConfirmHost.tsx";
 
-if (typeof window !== "undefined") {
+const REDUX_DEBUG_ENABLED =
+  import.meta.env.DEV &&
+  import.meta.env.VITE_DEBUG_REDUX === "true";
+
+if (typeof window !== "undefined" && REDUX_DEBUG_ENABLED) {
   window.__APP_STORE__ = store;
   let previousEditor = store.getState().editor;
   store.subscribe(() => {
@@ -31,16 +36,18 @@ if (typeof window !== "undefined") {
 function AppProviders({ children }: ProvidersProps): React.ReactElement {
   return (
     <ReduxProvider store={store}>
-      <AuthBootstrap>
-        <ThemeProvider>
-          <ShortcutProvider>
-            {children}
-            <ContextMenuHost />
-            <ConfirmHost />
-            <ToastHost />
-          </ShortcutProvider>
-        </ThemeProvider>
-      </AuthBootstrap>
+      <LanguageProvider>
+        <AuthBootstrap>
+          <ThemeProvider>
+            <ShortcutProvider>
+              {children}
+              <ContextMenuHost />
+              <ConfirmHost />
+              <ToastHost />
+            </ShortcutProvider>
+          </ThemeProvider>
+        </AuthBootstrap>
+      </LanguageProvider>
     </ReduxProvider>
   );
 }

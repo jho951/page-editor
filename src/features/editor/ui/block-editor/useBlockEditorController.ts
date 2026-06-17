@@ -3,6 +3,7 @@
  */
 
 import { useMemo } from "react";
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import {
   selectEditor,
@@ -19,18 +20,29 @@ import { useEditorDocumentLoad } from "@features/editor/ui/block-editor/useEdito
 import { useEditorLeaveGuards } from "@features/editor/ui/block-editor/useEditorLeaveGuards.ts";
 import { useEditorShortcutBridge } from "@features/editor/ui/block-editor/useEditorShortcutBridge.ts";
 
-function formatStatus(saveState: string, lastSavedAt: number | null): string {
-  if (saveState === "saving") return "저장 중...";
-  if (saveState === "conflict") return "충돌 발생";
-  if (saveState === "error") return "저장 실패";
-  if (saveState === "dirty") return "저장 대기 중";
+function formatStatus(
+  saveState: string,
+  lastSavedAt: number | null,
+  t: (key: "editor.status.saving" | "editor.status.conflict" | "editor.status.error" | "editor.status.dirty" | "editor.status.saved" | "editor.status.local", params?: Record<string, string>) => string,
+  formatDateTime: (value: number | string | Date, options?: Intl.DateTimeFormatOptions) => string,
+): string {
+  if (saveState === "saving") return t("editor.status.saving");
+  if (saveState === "conflict") return t("editor.status.conflict");
+  if (saveState === "error") return t("editor.status.error");
+  if (saveState === "dirty") return t("editor.status.dirty");
   if (saveState === "saved" && lastSavedAt) {
-    return `저장됨 ${new Date(lastSavedAt).toLocaleTimeString()}`;
+    return t("editor.status.saved", {
+      time: formatDateTime(lastSavedAt, {
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+    });
   }
-  return "로컬 편집 중";
+  return t("editor.status.local");
 }
 
 export function useBlockEditorController(documentId: string) {
+  const { formatDateTime, t } = useI18n();
   const dispatch = useAppDispatch();
   const editor = useAppSelector(selectEditor);
   const blocks = useAppSelector(selectEditorBlocks);
@@ -64,7 +76,10 @@ export function useBlockEditorController(documentId: string) {
     hasPendingChanges,
   });
 
-  const statusText = useMemo(() => formatStatus(saveState, lastSavedAt), [saveState, lastSavedAt]);
+  const statusText = useMemo(
+    () => formatStatus(saveState, lastSavedAt, t, formatDateTime),
+    [formatDateTime, lastSavedAt, saveState, t],
+  );
 
   return {
     blocks,

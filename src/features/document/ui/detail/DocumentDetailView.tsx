@@ -7,6 +7,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { Icon } from "@jho951/ui-components";
 
+import { useI18n } from "@app/provider/useI18n.ts";
 import { useAppDispatch, useAppSelector } from "@app/store/hooks.ts";
 import { BlockEditor } from "@features/editor/index.ts";
 import { documentsDomainApi } from "@features/document/api/documents.ts";
@@ -46,6 +47,7 @@ function findFolderNodeById(nodes: FolderItem[], targetId: string): FolderItem |
 function DocumentDetailView(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const dispatch = useAppDispatch();
   const folders = useAppSelector(selectFolders);
   const [childPagePreviewById, setChildPagePreviewById] = useState<Record<string, string>>({});
@@ -169,8 +171,8 @@ function DocumentDetailView(): React.ReactElement {
   if (!id) {
     return (
       <DocumentDetailFallback
-        lead="링크가 만료되었거나 문서가 아직 준비되지 않았습니다."
-        statusMessage="문서가 존재하지 않거나 아직 불러오지 못했습니다."
+        lead={t("document.detail.state.invalidLead")}
+        statusMessage={t("document.detail.state.invalidStatus")}
         onBack={() => navigate("/documents")}
       />
     );
@@ -178,7 +180,7 @@ function DocumentDetailView(): React.ReactElement {
 
   if (loading && !documentState) {
     return (
-      <section className={`${styles.content} ${styles.loadingState}`} aria-busy="true" aria-label="문서를 불러오는 중">
+      <section className={`${styles.content} ${styles.loadingState}`} aria-busy="true" aria-label={t("document.detail.loadingAria")}>
         <div className={styles.loadingSpinner} aria-hidden="true" />
       </section>
     );
@@ -194,7 +196,7 @@ function DocumentDetailView(): React.ReactElement {
     );
   }
 
-  const doc = documentState ?? buildDocumentState(id, "Untitled", 0);
+  const doc = documentState ?? buildDocumentState(id, t("common.document.untitled"), 0);
   return (
     <section className={styles.content}>
       <div className={styles.editorStage}>
@@ -215,8 +217,8 @@ function DocumentDetailView(): React.ReactElement {
                 <input
                   className={styles.titleInput}
                   value={titleDraft}
-                  placeholder="Untitled"
-                  aria-label="문서 제목"
+                  placeholder={t("document.detail.titlePlaceholder")}
+                  aria-label={t("document.detail.titleAria")}
                   readOnly={titleSaveState === "saving"}
                   onChange={(event) => updateTitleDraft(event.target.value)}
                   onBlur={() => void saveDocumentTitle()}
@@ -297,7 +299,7 @@ function DocumentDetailView(): React.ReactElement {
                           <span className={styles.childPageCopy}>
                             <span className={styles.childPageTitle}>{childPage.title}</span>
                             <span className={styles.childPagePreview}>
-                              {childPagePreviewById[childPage.id] || "하위 페이지"}
+                              {childPagePreviewById[childPage.id] || t("document.detail.childPageFallback")}
                             </span>
                           </span>
                           <span className={styles.childPageDrag} aria-hidden="true">⋮⋮</span>
